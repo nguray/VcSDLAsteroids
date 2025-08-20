@@ -562,7 +562,7 @@ int main(int argc, char *argv[])
         fprintf(stderr, "Erreur SDL_Init : %s", SDL_GetError());
         return EXIT_FAILURE;
     }
-    window = SDL_CreateWindow("SDL2", 100, 100,
+    window = SDL_CreateWindow("SDL2 Asteroids", 100, 100,
                               WIN_WIDTH, WIN_HEIGHT, SDL_WINDOW_SHOWN);
     if(NULL == window)
     {
@@ -580,6 +580,7 @@ int main(int argc, char *argv[])
     }
 
 
+    SDL_bool fPause = SDL_FALSE;
     Uint32 lastBulletTicks = SDL_GetTicks();
     SDL_Event event;
     while(!quit)
@@ -604,6 +605,8 @@ int main(int argc, char *argv[])
                     iTrigger = 1;
                     lastBulletTicks = SDL_GetTicks();
                     AddNewBullet( &listBullets, myShip.x, myShip.y, myShip.u);
+                }else if(event.key.keysym.sym == SDLK_p){
+                    fPause ^= SDL_TRUE;
                 }
             }else if ((event.type == SDL_KEYUP)){
                 printf("KeyUp\n");
@@ -621,68 +624,72 @@ int main(int argc, char *argv[])
             }
         }
 
-        if (iRotate==1){
-            Ship_SetAngle(&myShip, myShip.angle - 1.0f);
-        }else if (iRotate==-1){
-            Ship_SetAngle(&myShip, myShip.angle + 1.0f);
-        }
+        if (fPause==SDL_FALSE){
 
-
-        if (iAccelerate>0){
-            Ship_Accelerate(&myShip, 0.015f);
-        }else if (iAccelerate<0){
-            Ship_Decelerate(&myShip, 0.015f);
-        }
-
-        if (iTrigger){
-            Uint32 curTicks = SDL_GetTicks();
-            if ((curTicks-lastBulletTicks)>250){
-                lastBulletTicks = curTicks;
-                AddNewBullet( &listBullets, myShip.x, myShip.y, myShip.u);
+            if (iRotate==1){
+                Ship_SetAngle(&myShip, myShip.angle - 1.0f);
+            }else if (iRotate==-1){
+                Ship_SetAngle(&myShip, myShip.angle + 1.0f);
             }
+
+
+            if (iAccelerate>0){
+                Ship_Accelerate(&myShip, 0.015f);
+            }else if (iAccelerate<0){
+                Ship_Decelerate(&myShip, 0.015f);
+            }
+
+            if (iTrigger){
+                Uint32 curTicks = SDL_GetTicks();
+                if ((curTicks-lastBulletTicks)>250){
+                    lastBulletTicks = curTicks;
+                    AddNewBullet( &listBullets, myShip.x, myShip.y, myShip.u);
+                }
+            }
+
+            // Update Game states
+            Ship_UpdatePosition(&myShip);
+            UpdateRockPositions(listRocks);
+            UpdateBulletPositions(listBullets);
+
+            UpdateBulletsList(&listBullets);
+
+            Bullet *ptrBullet;
+            if (ptrBullet=listBullets){
+                do{
+                    //
+                    CheckBulletHitRocks(ptrBullet, listRocks);
+                    //
+                    ptrBullet = ptrBullet->next;
+                }while(ptrBullet);
+            }
+
+            UpdateRocksList(&listRocks);
+
+            //
+            // int nb = 0;
+            // Bullet *ptrBullet;
+            // if (ptrBullet=listBullets){
+
+            //     do{
+            //         nb++;
+            //         ptrBullet = ptrBullet->next;
+            //     }while(ptrBullet);
+            // }
+            // printf("nbre bullets = %d\n",nb);
+
+            int nb = 0;
+            Rock *ptrRock;
+            if (ptrRock=listRocks){
+
+                do{
+                    nb++;
+                    ptrRock = ptrRock->next;
+                }while(ptrRock);
+            }
+            printf("nbre Rocks = %d\n",nb);
+
         }
-
-        // Update Game states
-        Ship_UpdatePosition(&myShip);
-        UpdateRockPositions(listRocks);
-        UpdateBulletPositions(listBullets);
-
-        UpdateBulletsList(&listBullets);
-
-        Bullet *ptrBullet;
-        if (ptrBullet=listBullets){
-            do{
-                //
-                CheckBulletHitRocks(ptrBullet, listRocks);
-                //
-                ptrBullet = ptrBullet->next;
-            }while(ptrBullet);
-        }
-
-        UpdateRocksList(&listRocks);
-
-        //
-        // int nb = 0;
-        // Bullet *ptrBullet;
-        // if (ptrBullet=listBullets){
-
-        //     do{
-        //         nb++;
-        //         ptrBullet = ptrBullet->next;
-        //     }while(ptrBullet);
-        // }
-        // printf("nbre bullets = %d\n",nb);
-
-        int nb = 0;
-        Rock *ptrRock;
-        if (ptrRock=listRocks){
-
-            do{
-                nb++;
-                ptrRock = ptrRock->next;
-            }while(ptrRock);
-        }
-        printf("nbre Rocks = %d\n",nb);
 
 
         //

@@ -169,7 +169,12 @@ void Ship_Decelerate(Ship *ptrShip, float pac)
 
 }
 
-void AddBullet(Bullet **listBullets, float x, float y, SDL_FPoint u)
+void AddNewBullet(Bullet **listBullets, float x, float y, SDL_FPoint u)
+/*-------------------------------------------------------------*\
+    Create new bullet and append to the end of the list
+
+    Raymond NGUYEN THANH                        18-08-2025
+\*-------------------------------------------------------------*/
 {
     Bullet *ptrBullet,*ptrCur;
     //--
@@ -196,6 +201,11 @@ void AddBullet(Bullet **listBullets, float x, float y, SDL_FPoint u)
 }
 
 void UpdateBulletPositions(Bullet *listBullets)
+/*-------------------------------------------------------------*\
+    Compute new positions for active bullets
+
+    Raymond NGUYEN THANH                        18-08-2025
+\*-------------------------------------------------------------*/
 {
     float x,y;
     Bullet *ptrBullet;
@@ -246,8 +256,12 @@ void DrawBullets(Bullet *listBullets, SDL_Renderer *renderer)
 
 }
 
-void UpdateBulletStates(Bullet **listBullets)
+void UpdateBulletsList(Bullet **listBullets)
+/*-------------------------------------------------------------*\
+    Remove deleted bullets from the list of bullets
 
+    Raymond NGUYEN THANH                        19-08-2025
+\*-------------------------------------------------------------*/
 {
     Bullet *ptrBullet,*ptrNext=NULL;
     Bullet *ptrNotDeleted = NULL;
@@ -261,6 +275,7 @@ void UpdateBulletStates(Bullet **listBullets)
                 free(ptrBullet);
 
             }else{
+                ptrBullet->next = NULL;
                 if (ptrNotDeleted==NULL){
                     // Firts not deleted
                     ptrNotDeleted = ptrBullet;
@@ -272,7 +287,6 @@ void UpdateBulletStates(Bullet **listBullets)
                     ptrNotDeleted->next = ptrBullet;
                     ptrNotDeleted = ptrBullet;
                 }
-                ptrBullet->next = NULL;
             }
 
             ptrBullet = ptrNext;
@@ -288,7 +302,12 @@ void UpdateBulletStates(Bullet **listBullets)
     }
 }
 
-void Add_NewRock(Rock **listRocks)
+void AddNewRock(Rock **listRocks)
+/*-------------------------------------------------------------*\
+    Create new rock and append to the end of the list
+
+    Raymond NGUYEN THANH                        19-08-2025
+\*-------------------------------------------------------------*/
 {
     float   a, da, r;
     Rock    *ptrRock,*ptrCur;
@@ -337,6 +356,11 @@ void Add_NewRock(Rock **listRocks)
 }
 
 void UpdateRockPositions(Rock *listRocks)
+/*-------------------------------------------------------------*\
+    Compute new positions for active rocks
+
+    Raymond NGUYEN THANH                        19-08-2025
+\*-------------------------------------------------------------*/
 {
     float x,y;
     Rock *ptrRock;
@@ -408,6 +432,39 @@ void DrawRocks( Rock *listRocks, SDL_Renderer *renderer)
         
         }while(ptrRock);
 
+    }
+
+}
+
+void UpdateRocksList(Rock **listRocks)
+/*-------------------------------------------------------------*\
+    Remove deleted rocks from the list of rocks
+
+    Raymond NGUYEN THANH                        20-08-2025
+\*-------------------------------------------------------------*/
+{
+    Rock *ptrFirst=NULL; // For the case of there no active Rock
+    Rock *ptrPrev=NULL;
+    Rock *ptrCur,*ptrNext;
+    //---------------------------------------------------------
+    if (ptrCur=*listRocks){
+        do{
+            ptrNext = ptrCur->next;
+            if (ptrCur->fDeleted==SDL_TRUE){
+                free(ptrCur);
+            }else{
+                ptrCur->next = NULL;
+                if (ptrPrev==NULL){    // No previous active rock
+                    ptrFirst = ptrCur; // Must be the head of the list 
+                    ptrPrev=ptrCur;
+                }else{
+                    ptrPrev->next = ptrCur;
+                    ptrPrev = ptrCur;
+                }
+            }
+            ptrCur = ptrNext;
+        }while(ptrCur);
+        *listRocks = ptrFirst;
     }
 
 }
@@ -496,7 +553,7 @@ int main(int argc, char *argv[])
     srand(time(NULL));   // Initialization, should only be called once.
 
     for(int i = 0; i<15;++i){
-        Add_NewRock(&listRocks);
+        AddNewRock(&listRocks);
 
     }
 
@@ -546,7 +603,7 @@ int main(int argc, char *argv[])
                 }else if(event.key.keysym.sym == SDLK_SPACE){
                     iTrigger = 1;
                     lastBulletTicks = SDL_GetTicks();
-                    AddBullet( &listBullets, myShip.x, myShip.y, myShip.u);
+                    AddNewBullet( &listBullets, myShip.x, myShip.y, myShip.u);
                 }
             }else if ((event.type == SDL_KEYUP)){
                 printf("KeyUp\n");
@@ -581,7 +638,7 @@ int main(int argc, char *argv[])
             Uint32 curTicks = SDL_GetTicks();
             if ((curTicks-lastBulletTicks)>250){
                 lastBulletTicks = curTicks;
-                AddBullet( &listBullets, myShip.x, myShip.y, myShip.u);
+                AddNewBullet( &listBullets, myShip.x, myShip.y, myShip.u);
             }
         }
 
@@ -589,7 +646,8 @@ int main(int argc, char *argv[])
         Ship_UpdatePosition(&myShip);
         UpdateRockPositions(listRocks);
         UpdateBulletPositions(listBullets);
-        UpdateBulletStates(&listBullets);
+
+        UpdateBulletsList(&listBullets);
 
         Bullet *ptrBullet;
         if (ptrBullet=listBullets){
@@ -601,6 +659,8 @@ int main(int argc, char *argv[])
             }while(ptrBullet);
         }
 
+        UpdateRocksList(&listRocks);
+
         //
         // int nb = 0;
         // Bullet *ptrBullet;
@@ -611,10 +671,19 @@ int main(int argc, char *argv[])
         //         ptrBullet = ptrBullet->next;
         //     }while(ptrBullet);
         // }
-        // printf("nbr bullets = %d\n",nb);
+        // printf("nbre bullets = %d\n",nb);
 
-        //int r = rand() % 20;
-        //printf("random : %d\n",r);
+        int nb = 0;
+        Rock *ptrRock;
+        if (ptrRock=listRocks){
+
+            do{
+                nb++;
+                ptrRock = ptrRock->next;
+            }while(ptrRock);
+        }
+        printf("nbre Rocks = %d\n",nb);
+
 
         //
         SDL_SetRenderDrawColor(renderer, dark_blue.r, dark_blue.g, dark_blue.b, dark_blue.a);

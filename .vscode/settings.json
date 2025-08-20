@@ -1,6 +1,8 @@
 {
     "files.associations": {
         ".als.json": "jsonc",
-        "math.h": "c"
+        "math.h": "c",
+        "sdl_mixer.h": "c",
+        "algorithm": "c"
     }
 }

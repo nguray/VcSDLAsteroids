@@ -1,5 +1,5 @@
 CC = gcc
-LDFLAGS = $(shell sdl2-config --libs | sed 's/ -I/ -isystem /g' ) -lm
+LDFLAGS = $(shell sdl2-config --libs | sed 's/ -I/ -isystem /g' ) -lm -lSDL2_mixer
 CFLAGS = $(shell sdl2-config --cflags | sed 's/ -I/ -isystem /g') -std=c11
 
 PROGRAM = asteroids

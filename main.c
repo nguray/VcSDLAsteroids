@@ -1,4 +1,5 @@
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_mixer.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -402,11 +403,11 @@ void DrawRocks( Rock *listRocks, SDL_Renderer *renderer)
 {
     float x0,y0,x1,y1,x2,y2;
     Rock *ptrRock;
-    SDL_Color orange = {255, 127, 40, 255};
+    SDL_Color light_grey = {200, 200, 200, 255};
     //-------------------------------------------------
     if (ptrRock=listRocks){
 
-        SDL_SetRenderDrawColor(renderer, orange.r, orange.g, orange.b, orange.a);
+        SDL_SetRenderDrawColor(renderer, light_grey.r, light_grey.g, light_grey.b, light_grey.a);
 
         do{
 
@@ -528,6 +529,7 @@ int main(int argc, char *argv[])
 {
     SDL_Window *window = NULL;
     SDL_Renderer *renderer = NULL;
+    Mix_Chunk *laserSound = NULL;
 
     SDL_Color orange = {255, 127, 40, 255};
     SDL_Color dark_blue = {10, 10, 255, 255};
@@ -557,11 +559,21 @@ int main(int argc, char *argv[])
 
     }
 
-    if(0 != SDL_Init(SDL_INIT_VIDEO))
+    if(0 != SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO))
     {
         fprintf(stderr, "Erreur SDL_Init : %s", SDL_GetError());
         return EXIT_FAILURE;
     }
+
+    if(Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, MIX_DEFAULT_CHANNELS, 1024) == -1) //Initialisation de l'API Mixer
+    {
+        printf("%s", Mix_GetError());
+    }
+
+    if (laserSound = Mix_LoadWAV( "res/344276__nsstudios__laser3.wav" )){
+        Mix_VolumeChunk(laserSound, MIX_MAX_VOLUME/4);
+    }
+
     window = SDL_CreateWindow("SDL2 Asteroids", 100, 100,
                               WIN_WIDTH, WIN_HEIGHT, SDL_WINDOW_SHOWN);
     if(NULL == window)
@@ -589,7 +601,7 @@ int main(int argc, char *argv[])
             if(event.type == SDL_QUIT){
                 quit = SDL_TRUE;
             }else if ((event.type == SDL_KEYDOWN) && (!event.key.repeat)){
-                printf("Keydown\n");
+                //printf("Keydown\n");
                 if(event.key.keysym.sym == SDLK_ESCAPE){
                     quit = SDL_TRUE;
                     //printf("Escape Key\n");
@@ -605,11 +617,12 @@ int main(int argc, char *argv[])
                     iTrigger = 1;
                     lastBulletTicks = SDL_GetTicks();
                     AddNewBullet( &listBullets, myShip.x, myShip.y, myShip.u);
+                    Mix_PlayChannel( -1, laserSound, 0 );
                 }else if(event.key.keysym.sym == SDLK_p){
                     fPause ^= SDL_TRUE;
                 }
             }else if ((event.type == SDL_KEYUP)){
-                printf("KeyUp\n");
+                //printf("KeyUp\n");
                 if (event.key.keysym.sym == SDLK_LEFT){
                     iRotate = 0;
                 }else if(event.key.keysym.sym == SDLK_RIGHT){
@@ -641,9 +654,10 @@ int main(int argc, char *argv[])
 
             if (iTrigger){
                 Uint32 curTicks = SDL_GetTicks();
-                if ((curTicks-lastBulletTicks)>250){
+                if ((curTicks-lastBulletTicks)>200){
                     lastBulletTicks = curTicks;
                     AddNewBullet( &listBullets, myShip.x, myShip.y, myShip.u);
+                    Mix_PlayChannel( -1, laserSound, 0 );
                 }
             }
 
@@ -678,16 +692,16 @@ int main(int argc, char *argv[])
             // }
             // printf("nbre bullets = %d\n",nb);
 
-            int nb = 0;
-            Rock *ptrRock;
-            if (ptrRock=listRocks){
+            // int nb = 0;
+            // Rock *ptrRock;
+            // if (ptrRock=listRocks){
 
-                do{
-                    nb++;
-                    ptrRock = ptrRock->next;
-                }while(ptrRock);
-            }
-            printf("nbre Rocks = %d\n",nb);
+            //     do{
+            //         nb++;
+            //         ptrRock = ptrRock->next;
+            //     }while(ptrRock);
+            // }
+            // printf("nbre Rocks = %d\n",nb);
 
         }
 
@@ -719,10 +733,18 @@ int main(int argc, char *argv[])
     if(NULL != renderer)
         SDL_DestroyRenderer(renderer);
 
+    if (laserSound!=NULL)
+        Mix_FreeChunk( laserSound );
+
     if(NULL != window)
         SDL_DestroyWindow(window);
+ 
+    Mix_CloseAudio();
 
+    //
+    Mix_Quit();
     SDL_Quit();
+
     return EXIT_SUCCESS;
 }
 

@@ -7,6 +7,7 @@
 #define PI 3.141592654
 
 // gcc sdl01.c -o sdl01 $(sdl2-config --cflags --libs)
+// for github use ssh-gen
 
 #define WIN_WIDTH  640
 #define WIN_HEIGHT 480

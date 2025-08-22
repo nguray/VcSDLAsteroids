@@ -725,7 +725,7 @@ int main(int argc, char *argv[])
         Mix_VolumeChunk(laserSound, MIX_MAX_VOLUME/4);
     }
 
-    if (explosionSound = Mix_LoadWAV( "res/huge-explosion-in-distance-100604.wav" )){
+    if (explosionSound = Mix_LoadWAV( "res/387857__runningmind__explosion_asteroid2.wav" )){
         Mix_VolumeChunk(explosionSound, MIX_MAX_VOLUME/4);
     }
 

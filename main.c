@@ -55,6 +55,142 @@ typedef struct Rock {
     struct Rock     *next;
 } Rock;
 
+typedef struct Explosion {
+    int                 iState;
+    int                 nbVertices;
+    SDL_FPoint          vertices[8];
+    SDL_FPoint          velocities[8];
+    SDL_bool            fDeleted;
+    struct Explosion    *next;
+} Explosion;
+
+void AddNewExplosion(Explosion **listExplosions,float x,float y,float vx,float vy)
+{
+    float ra,e_vx,e_vy;
+    Explosion *ptrExplosion,*ptrCur;
+    //------------------------------------------------
+    float coeffRa = PI/180.0f;
+    if (ptrExplosion = (Explosion *) calloc(1,sizeof(Explosion))){
+        ra = 0.0f;
+        ptrExplosion->iState = 0;
+        ptrExplosion->nbVertices = 8;
+        for (int i=0; i<8; ++i){
+            e_vx = 2.5f*cos(i*45*coeffRa) + vx; 
+            e_vy = 2.5f*sin(i*45*coeffRa) + vy;
+            ptrExplosion->velocities[i].x = e_vx; 
+            ptrExplosion->velocities[i].y = e_vy;
+            ptrExplosion->vertices[i].x = x; 
+            ptrExplosion->vertices[i].y = y;
+        }
+
+        ptrExplosion->fDeleted = SDL_FALSE;
+
+        if (ptrCur = *listExplosions){
+            // Find last element
+            while(ptrCur->next){
+                ptrCur = ptrCur->next;
+            }
+            ptrCur->next = ptrExplosion;
+        }else{
+            *listExplosions = ptrExplosion;
+        }
+
+
+    }
+
+}
+
+void UpdateExplosions(Explosion *listExplosions)
+/*-------------------------------------------------------------*\
+    Compute new explosions states
+
+    Raymond NGUYEN THANH                        22-08-2025
+\*-------------------------------------------------------------*/
+{
+    Explosion *ptrExplosion;
+    //----------------------------------------
+    if (ptrExplosion=listExplosions){
+        do{
+            if (ptrExplosion->fDeleted==SDL_FALSE){
+                if (ptrExplosion->iState<10){
+                    for(int i=0;i<ptrExplosion->nbVertices;++i){
+                        ptrExplosion->vertices[i].x += ptrExplosion->velocities[i].x;
+                        ptrExplosion->vertices[i].y += ptrExplosion->velocities[i].y;
+                    }
+                    ptrExplosion->iState++;
+                }else{
+                    ptrExplosion->fDeleted = SDL_TRUE;
+                }
+            }
+            ptrExplosion = ptrExplosion->next;
+        }while(ptrExplosion);
+    }
+}
+
+void DrawExplosions(Explosion *listExplosions, SDL_Renderer *renderer)
+{
+    float x1,y1,x2,y2;
+    float n,vx,vy;
+    Explosion *ptrExplosion;
+    SDL_Color light_grey = {200, 200, 200, 255};
+    //----------------------------------------
+    if (ptrExplosion=listExplosions){
+        do{
+            SDL_SetRenderDrawColor(renderer, light_grey.r, light_grey.g, light_grey.b, light_grey.a);
+            if (ptrExplosion->fDeleted==SDL_FALSE){
+                for (int i=0;i<ptrExplosion->nbVertices;++i){
+                    vx = ptrExplosion->velocities[i].x;
+                    vy = ptrExplosion->velocities[i].y;
+                    n = sqrt(vx*vx+vy*vy);
+                    vx /= n;
+                    vy /= n;
+                    x1 = ptrExplosion->vertices[i].x + 2.0f*vx;
+                    y1 = ptrExplosion->vertices[i].y + 2.0f*vy;
+                    x2 = ptrExplosion->vertices[i].x - 2.0f*vx;
+                    y2 = ptrExplosion->vertices[i].y - 2.0f*vy;
+                    SDL_RenderDrawLineF(renderer, x1, y1, x2, y2);
+                }
+            }
+            ptrExplosion = ptrExplosion->next;
+        }while(ptrExplosion);
+        
+    }
+
+}
+
+void UpdateExplosionssList(Explosion **listExplosions)
+/*-------------------------------------------------------------*\
+    Remove deleted objects from the explosions list
+
+    Raymond NGUYEN THANH                        22-08-2025
+\*-------------------------------------------------------------*/
+{
+    Explosion *ptrFirst=NULL; // For the case of there no active Rock
+    Explosion *ptrPrev=NULL;
+    Explosion *ptrCur,*ptrNext;
+    //---------------------------------------------------------
+    if (ptrCur=*listExplosions){
+        do{
+            ptrNext = ptrCur->next;
+            if (ptrCur->fDeleted==SDL_TRUE){
+                free(ptrCur);
+            }else{
+                ptrCur->next = NULL;
+                if (ptrPrev==NULL){    // No previous active rock
+                    ptrFirst = ptrCur; // Must be the head of the list 
+                    ptrPrev=ptrCur;
+                }else{
+                    ptrPrev->next = ptrCur;
+                    ptrPrev = ptrCur;
+                }
+            }
+            ptrCur = ptrNext;
+        }while(ptrCur);
+        *listExplosions = ptrFirst;
+    }
+
+}
+
 
 void Ship_Draw( Ship *ptrShip, SDL_Renderer *renderer)
 {
@@ -475,7 +611,7 @@ void UpdateRocksList(Rock **listRocks)
 
 }
 
-void CheckBulletHitRocks(Bullet *ptrBullet, Rock *listRocks)
+Rock *CheckBulletHitRocks(Bullet *ptrBullet, Rock *listRocks)
 {
     float   r,vx,vy;
     Rock *ptrRock;
@@ -490,14 +626,14 @@ void CheckBulletHitRocks(Bullet *ptrBullet, Rock *listRocks)
                 if (r<ptrRock->rayMin){
                     ptrBullet->fDeleted = SDL_TRUE;
                     ptrRock->fDeleted = SDL_TRUE;
-                    break;
+                    return ptrRock;
                 }
             }
             //--
             ptrRock = ptrRock->next;
         }while(ptrRock);
     }
-
+    return NULL;
 }
 
 void FreeRocks(Rock **listRocks)
@@ -535,6 +671,7 @@ int main(int argc, char *argv[])
     SDL_Window *window = NULL;
     SDL_Renderer *renderer = NULL;
     Mix_Chunk *laserSound = NULL;
+    Mix_Chunk *explosionSound = NULL;
 
     SDL_Color orange = {255, 127, 40, 255};
     SDL_Color dark_blue = {10, 10, 255, 255};
@@ -543,6 +680,7 @@ int main(int argc, char *argv[])
 
     Bullet  *listBullets = NULL;
     Rock    *listRocks = NULL;
+    Explosion *listExplosions = NULL;
 
     int iRotate = 0;
     int iAccelerate = 0;
@@ -587,6 +725,10 @@ int main(int argc, char *argv[])
         Mix_VolumeChunk(laserSound, MIX_MAX_VOLUME/4);
     }
 
+    if (explosionSound = Mix_LoadWAV( "res/huge-explosion-in-distance-100604.wav" )){
+        Mix_VolumeChunk(explosionSound, MIX_MAX_VOLUME/4);
+    }
+
     window = SDL_CreateWindow("SDL2 Asteroids", 100, 100,
                               WIN_WIDTH, WIN_HEIGHT, SDL_WINDOW_SHOWN);
     if(NULL == window)
@@ -606,12 +748,17 @@ int main(int argc, char *argv[])
 
 
     SDL_bool fPause = SDL_FALSE;
-    Uint32 lastBulletTicks = SDL_GetTicks();
+
+    Uint32 curTicks = SDL_GetTicks();
+    Uint32 lastBulletTicks = curTicks;
+    Uint32 lastUpdateExplosionTicks = curTicks;
+
     SDL_Event event;
     while(!quit)
     {
         while(SDL_PollEvent(&event)){
 
+            // Read gamepad
             if (joystick){
 
                 if (event.type == SDL_JOYAXISMOTION){
@@ -703,6 +850,10 @@ int main(int argc, char *argv[])
                     Mix_PlayChannel( -1, laserSound, 0 );
                 }else if(event.key.keysym.sym == SDLK_p){
                     fPause ^= SDL_TRUE;
+                }else if(event.key.keysym.sym == SDLK_e){
+                    AddNewExplosion(&listExplosions,100.0f,100.0f,1.0f,1.0f);
+                    AddNewExplosion(&listExplosions,150.0f,100.0f,1.0f,1.0f);
+                    AddNewExplosion(&listExplosions,200.0f,100.0f,1.0f,1.0f);
                 }
             }else if ((event.type == SDL_KEYUP)){
                 //printf("KeyUp\n");
@@ -751,11 +902,23 @@ int main(int argc, char *argv[])
 
             UpdateBulletsList(&listBullets);
 
+            curTicks = SDL_GetTicks();;
+            if ((curTicks-lastUpdateExplosionTicks)>80){
+                lastUpdateExplosionTicks = curTicks;
+                UpdateExplosions(listExplosions);
+                UpdateExplosionssList(&listExplosions);
+            }
+
+
             Bullet *ptrBullet;
             if (ptrBullet=listBullets){
+                Rock *ptrRock;
                 do{
                     //
-                    CheckBulletHitRocks(ptrBullet, listRocks);
+                    if (ptrRock=CheckBulletHitRocks(ptrBullet, listRocks)){
+                        AddNewExplosion(&listExplosions,ptrRock->x,ptrRock->y, ptrRock->v.x, ptrRock->v.y);
+                        Mix_PlayChannel( -1, explosionSound, 0 );
+                    }
                     //
                     ptrBullet = ptrBullet->next;
                 }while(ptrBullet);
@@ -798,6 +961,7 @@ int main(int argc, char *argv[])
 
         DrawBullets( listBullets, renderer);
         DrawRocks(listRocks, renderer);
+        DrawExplosions(listExplosions, renderer);
 
         //
         SDL_RenderPresent(renderer);
@@ -818,6 +982,9 @@ int main(int argc, char *argv[])
 
     if (laserSound!=NULL)
         Mix_FreeChunk( laserSound );
+
+    if (explosionSound!=NULL)
+        Mix_FreeChunk( explosionSound );
 
     if(NULL != window)
         SDL_DestroyWindow(window);

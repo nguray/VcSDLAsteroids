@@ -611,42 +611,76 @@ int main(int argc, char *argv[])
     while(!quit)
     {
         while(SDL_PollEvent(&event)){
+
+            if (joystick){
+
+                if (event.type == SDL_JOYAXISMOTION){
+                    printf("Joystick event axis whick %d\n",event.jaxis.which); // Joystick number
+                    printf("Joystick event axis  %d --> %d\n",event.jaxis.axis,event.jaxis.value); // axis number
+                    if (event.jaxis.axis==4){
+                        if (event.jaxis.value>100){
+                            iRotate = 1;
+                        }else if (event.jaxis.value<-100){
+                            iRotate = -1;                        
+                        }else{
+                            iRotate = 0;
+                        }
+                    }
+                    if (event.jaxis.axis==1){
+                        if (event.jaxis.value>100){
+                            iAccelerate = -1;
+                        }else if (event.jaxis.value<-100){
+                            iAccelerate = 1;                        
+                        }else{
+                            iAccelerate = 0;
+                        }
+                    }
+
+                }else if (event.type == SDL_JOYBUTTONDOWN){
+                    printf("Joystick event button down %d\n",event.jbutton.button);
+                    if (event.jbutton.button==5){
+                        iTrigger = 1;
+                    }
+
+                }else if (event.type == SDL_JOYBUTTONUP){
+                    printf("Joystick event button up %d\n",event.jbutton.button);
+                    if (event.jbutton.button==5){
+                        iTrigger = 0;
+                    }
+
+                }else if (event.type == SDL_JOYHATMOTION){
+                    printf("Joystick event hat \n");
+                    if ( event.jhat.value & SDL_HAT_UP )
+                    {
+                        /* Do up stuff here */
+                        printf("HAT UP\n");
+                    }
+                    if ( event.jhat.value & SDL_HAT_DOWN )
+                    {
+                        /* Do up stuff here */
+                        printf("HAT DOWN\n");
+                    }
+                    if ( event.jhat.value & SDL_HAT_LEFT )
+                    {
+                        /* Do left stuff here */
+                        printf("HAT LEFT\n");
+                    }
+                    if ( event.jhat.value & SDL_HAT_RIGHT )
+                    {
+                        /* Do left stuff here */
+                        printf("HAT RIGHT\n");
+                    }
+
+                    if ( event.jhat.value & SDL_HAT_RIGHTDOWN )
+                    {
+                        /* Do right and down together stuff here */
+                        printf("HAT RIGHTDOWN\n");
+                    }
+                }
+            }
+
             if(event.type == SDL_QUIT){
                 quit = SDL_TRUE;
-            }else if (event.type == SDL_JOYAXISMOTION){
-                printf("Joystick event axis motion %d\n",event.jaxis.value);
-
-            }else if (event.type == SDL_JOYBUTTONDOWN){
-                printf("Joystick event button down %d\n",event.jbutton.button);
-
-            }else if (event.type == SDL_JOYHATMOTION){
-                printf("Joystick event hat \n");
-                if ( event.jhat.value & SDL_HAT_UP )
-                {
-                    /* Do up stuff here */
-                    printf("HAT UP\n");
-                }
-                if ( event.jhat.value & SDL_HAT_DOWN )
-                {
-                    /* Do up stuff here */
-                    printf("HAT DOWN\n");
-                }
-                if ( event.jhat.value & SDL_HAT_LEFT )
-                {
-                    /* Do left stuff here */
-                    printf("HAT LEFT\n");
-                }
-                if ( event.jhat.value & SDL_HAT_RIGHT )
-                {
-                    /* Do left stuff here */
-                    printf("HAT RIGHT\n");
-                }
-
-                if ( event.jhat.value & SDL_HAT_RIGHTDOWN )
-                {
-                    /* Do right and down together stuff here */
-                    printf("HAT RIGHTDOWN\n");
-                }
 
             }else if ((event.type == SDL_KEYDOWN) && (!event.key.repeat)){
                 //printf("Keydown\n");
@@ -788,7 +822,8 @@ int main(int argc, char *argv[])
     if(NULL != window)
         SDL_DestroyWindow(window);
 
-    if (joystick) SDL_JoystickClose(joystick);
+    if (joystick)
+        SDL_JoystickClose(joystick);
  
     Mix_CloseAudio();
 

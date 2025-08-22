@@ -10,6 +10,11 @@
 // gcc sdl01.c -o sdl01 $(sdl2-config --cflags --libs)
 // for github use  ssh-keygen -o -t rsa -C "windows-ssh@mcnz.com"
 
+// Fix gamepad conficting with mouse on debian base linux:
+//   sudo apt remove xserver-xorg-input-joystick
+//   sudo apt remove xserver-xorg-input-joystick-dev
+
+
 #define WIN_WIDTH  640
 #define WIN_HEIGHT 480
 
@@ -559,11 +564,19 @@ int main(int argc, char *argv[])
 
     }
 
-    if(0 != SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO))
+    if(0 != SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_JOYSTICK))
     {
         fprintf(stderr, "Erreur SDL_Init : %s", SDL_GetError());
         return EXIT_FAILURE;
     }
+
+    printf("%i joysticks were found.\n\n", SDL_NumJoysticks() );
+    printf("The names of the joysticks are:\n");
+		
+    SDL_Joystick *joystick;
+    SDL_JoystickEventState(SDL_ENABLE);
+    joystick = SDL_JoystickOpen(0);
+
 
     if(Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, MIX_DEFAULT_CHANNELS, 1024) == -1) //Initialisation de l'API Mixer
     {
@@ -600,6 +613,41 @@ int main(int argc, char *argv[])
         while(SDL_PollEvent(&event)){
             if(event.type == SDL_QUIT){
                 quit = SDL_TRUE;
+            }else if (event.type == SDL_JOYAXISMOTION){
+                printf("Joystick event axis motion %d\n",event.jaxis.value);
+
+            }else if (event.type == SDL_JOYBUTTONDOWN){
+                printf("Joystick event button down %d\n",event.jbutton.button);
+
+            }else if (event.type == SDL_JOYHATMOTION){
+                printf("Joystick event hat \n");
+                if ( event.jhat.value & SDL_HAT_UP )
+                {
+                    /* Do up stuff here */
+                    printf("HAT UP\n");
+                }
+                if ( event.jhat.value & SDL_HAT_DOWN )
+                {
+                    /* Do up stuff here */
+                    printf("HAT DOWN\n");
+                }
+                if ( event.jhat.value & SDL_HAT_LEFT )
+                {
+                    /* Do left stuff here */
+                    printf("HAT LEFT\n");
+                }
+                if ( event.jhat.value & SDL_HAT_RIGHT )
+                {
+                    /* Do left stuff here */
+                    printf("HAT RIGHT\n");
+                }
+
+                if ( event.jhat.value & SDL_HAT_RIGHTDOWN )
+                {
+                    /* Do right and down together stuff here */
+                    printf("HAT RIGHTDOWN\n");
+                }
+
             }else if ((event.type == SDL_KEYDOWN) && (!event.key.repeat)){
                 //printf("Keydown\n");
                 if(event.key.keysym.sym == SDLK_ESCAPE){
@@ -614,6 +662,7 @@ int main(int argc, char *argv[])
                 }else if(event.key.keysym.sym == SDLK_DOWN){
                     iAccelerate = -1;
                 }else if(event.key.keysym.sym == SDLK_SPACE){
+                    //SDL_CaptureMouse(SDL_TRUE);
                     iTrigger = 1;
                     lastBulletTicks = SDL_GetTicks();
                     AddNewBullet( &listBullets, myShip.x, myShip.y, myShip.u);
@@ -738,6 +787,8 @@ int main(int argc, char *argv[])
 
     if(NULL != window)
         SDL_DestroyWindow(window);
+
+    if (joystick) SDL_JoystickClose(joystick);
  
     Mix_CloseAudio();
 

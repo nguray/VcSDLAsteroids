@@ -25,6 +25,7 @@ typedef struct Ship{
     float x;
     float y;
     float angle;
+    int   iThrust;
     SDL_FPoint u;
     SDL_FPoint n;
     SDL_FPoint v;
@@ -63,6 +64,10 @@ typedef struct Explosion {
     SDL_bool            fDeleted;
     struct Explosion    *next;
 } Explosion;
+
+
+//-------------------------------------------------------------------
+//-------------------------------------------------------------------
 
 void AddNewExplosion(Explosion **listExplosions,float x,float y,float vx,float vy)
 {
@@ -191,25 +196,29 @@ void UpdateExplosionssList(Explosion **listExplosions)
 
 }
 
+//-------------------------------------------------------------------
+//-------------------------------------------------------------------
 
 void Ship_Draw( Ship *ptrShip, SDL_Renderer *renderer)
 {
-    SDL_Point pts[4];
+    float x1,y1,x2,y2,x3,y3,x4,y4;
+    SDL_Point pts[5];
+    SDL_Color white = {220, 220, 220, 255};
     SDL_Color orange = {255, 127, 40, 255};
 
     SDL_SetRenderDrawColor(renderer, orange.r, orange.g, orange.b, orange.a);
 
-    float x1 = ptrShip->x + ShipShape[0].y * ptrShip->u.x + ShipShape[0].x * ptrShip->n.x;
-    float y1 = ptrShip->y + ShipShape[0].y * ptrShip->u.y + ShipShape[0].x * ptrShip->n.y;
+    x1 = ptrShip->x + ShipShape[0].y * ptrShip->u.x + ShipShape[0].x * ptrShip->n.x;
+    y1 = ptrShip->y + ShipShape[0].y * ptrShip->u.y + ShipShape[0].x * ptrShip->n.y;
     SDL_RenderDrawLineF(renderer,ptrShip->x,ptrShip->y,x1,y1);
 
 
-    float x2 = ptrShip->x + ShipShape[1].y * ptrShip->u.x + ShipShape[1].x * ptrShip->n.x;
-    float y2 = ptrShip->y + ShipShape[1].y * ptrShip->u.y + ShipShape[1].x * ptrShip->n.y;
+    x2 = ptrShip->x + ShipShape[1].y * ptrShip->u.x + ShipShape[1].x * ptrShip->n.x;
+    y2 = ptrShip->y + ShipShape[1].y * ptrShip->u.y + ShipShape[1].x * ptrShip->n.y;
     SDL_RenderDrawLineF(renderer,ptrShip->x,ptrShip->y,x2,y2);
 
-    float x3 = ptrShip->x + ShipShape[2].y * ptrShip->u.x + ShipShape[2].x * ptrShip->n.x;
-    float y3 = ptrShip->y + ShipShape[2].y * ptrShip->u.y + ShipShape[2].x * ptrShip->n.y;
+    x3 = ptrShip->x + ShipShape[2].y * ptrShip->u.x + ShipShape[2].x * ptrShip->n.x;
+    y3 = ptrShip->y + ShipShape[2].y * ptrShip->u.y + ShipShape[2].x * ptrShip->n.y;
     SDL_RenderDrawLineF(renderer,ptrShip->x,ptrShip->y,x3,y3);
 
     pts[0].x = x1;
@@ -219,7 +228,6 @@ void Ship_Draw( Ship *ptrShip, SDL_Renderer *renderer)
     pts[1].y = y2;
 
     pts[2].x = x3;
-
     pts[2].y = y3;
 
     pts[3].x = x1;
@@ -228,6 +236,63 @@ void Ship_Draw( Ship *ptrShip, SDL_Renderer *renderer)
     //SDL_SetRenderDrawColor(renderer, orange.r, orange.g, orange.b, orange.a);
     SDL_RenderDrawLines(renderer, pts, 4);
 
+
+    if (ptrShip->iThrust==1){
+
+        SDL_SetRenderDrawColor(renderer, white.r, white.g, white.b, white.a);
+
+        x1 = ptrShip->x + ShipShape[1].y * ptrShip->u.x + ShipShape[1].x * ptrShip->n.x - 4.0*ptrShip->n.x;
+        y1 = ptrShip->y + ShipShape[1].y * ptrShip->u.y + ShipShape[1].x * ptrShip->n.y - 4.0*ptrShip->n.y;
+
+        x2 = ptrShip->x + ShipShape[1].y * ptrShip->u.x + ShipShape[1].x * ptrShip->n.x - 4.0*ptrShip->n.x - 10.0*ptrShip->u.x;
+        y2 = ptrShip->y + ShipShape[1].y * ptrShip->u.y + ShipShape[1].x * ptrShip->n.y - 4.0*ptrShip->n.y - 10.0*ptrShip->u.y;
+
+        pts[0].x = x1;
+        pts[0].y = y1; 
+        pts[1].x = x2;
+        pts[1].y = y2;
+        SDL_RenderDrawLines(renderer, pts, 2);
+
+        x1 = ptrShip->x + ShipShape[2].y * ptrShip->u.x + ShipShape[2].x * ptrShip->n.x + 4.0*ptrShip->n.x;
+        y1 = ptrShip->y + ShipShape[2].y * ptrShip->u.y + ShipShape[2].x * ptrShip->n.y + 4.0*ptrShip->n.y;
+
+        x2 = ptrShip->x + ShipShape[2].y * ptrShip->u.x + ShipShape[2].x * ptrShip->n.x + 4.0*ptrShip->n.x - 10.0*ptrShip->u.x;
+        y2 = ptrShip->y + ShipShape[2].y * ptrShip->u.y + ShipShape[2].x * ptrShip->n.y + 4.0*ptrShip->n.y - 10.0*ptrShip->u.y;
+
+        pts[0].x = x1;
+        pts[0].y = y1;
+        pts[1].x = x2;
+        pts[1].y = y2;
+        SDL_RenderDrawLines(renderer, pts, 2);
+
+    }else if (ptrShip->iThrust==-1){
+
+        SDL_SetRenderDrawColor(renderer, white.r, white.g, white.b, white.a);
+        x1 = ptrShip->x - 6.0*ptrShip->n.x;
+        y1 = ptrShip->y - 6.0*ptrShip->n.y;
+
+        x2 = ptrShip->x - 8.0*ptrShip->n.x + 10.0*ptrShip->u.x;
+        y2 = ptrShip->y - 8.0*ptrShip->n.y + 10.0*ptrShip->u.y;
+
+        pts[0].x = x1;
+        pts[0].y = y1; 
+        pts[1].x = x2;
+        pts[1].y = y2;
+        SDL_RenderDrawLines(renderer, pts, 2);
+
+        x1 = ptrShip->x + 6.0*ptrShip->n.x;
+        y1 = ptrShip->y + 6.0*ptrShip->n.y;
+
+        x2 = ptrShip->x + 8.0*ptrShip->n.x + 10.0*ptrShip->u.x;
+        y2 = ptrShip->y + 8.0*ptrShip->n.y + 10.0*ptrShip->u.y;
+
+        pts[0].x = x1;
+        pts[0].y = y1; 
+        pts[1].x = x2;
+        pts[1].y = y2;
+        SDL_RenderDrawLines(renderer, pts, 2);
+
+    }
 }
 
 void Ship_SetAngle( Ship *ptrShip, float a)
@@ -310,6 +375,15 @@ void Ship_Decelerate(Ship *ptrShip, float pac)
     ptrShip->v.y -= vy;
 
 }
+
+void Ship_SetThrust(Ship *ptrShip, int iThrust)
+{
+    //
+    ptrShip->iThrust = iThrust;
+}
+
+//-------------------------------------------------------------------
+//-------------------------------------------------------------------
 
 void AddNewBullet(Bullet **listBullets, float x, float y, SDL_FPoint u)
 /*-------------------------------------------------------------*\
@@ -443,6 +517,9 @@ void UpdateBulletsList(Bullet **listBullets)
 
     }
 }
+
+//-------------------------------------------------------------------
+//-------------------------------------------------------------------
 
 void AddNewRock(Rock **listRocks)
 /*-------------------------------------------------------------*\
@@ -666,6 +743,22 @@ void FreeBullets(Bullet **listBullets)
 
 }
 
+void FreeExplosions(Explosion **listExplosions)
+{
+    Explosion *ptrCur,*ptrNext;
+    //--------------------------------------------------------
+    if (ptrCur=*listExplosions){
+        while(ptrCur){
+            ptrNext = ptrCur->next;
+            free(ptrCur);
+            ptrCur = ptrNext;
+        }
+        *listExplosions = NULL;
+    }
+
+}
+
+
 int main(int argc, char *argv[])
 {
     SDL_Window *window = NULL;
@@ -674,7 +767,7 @@ int main(int argc, char *argv[])
     Mix_Chunk *explosionSound = NULL;
 
     SDL_Color orange = {255, 127, 40, 255};
-    SDL_Color dark_blue = {10, 10, 255, 255};
+    SDL_Color dark_blue = {10, 10, 150, 255};
 
     Ship myShip;
 
@@ -683,9 +776,9 @@ int main(int argc, char *argv[])
     Explosion *listExplosions = NULL;
 
     int iRotate = 0;
-    int iAccelerate = 0;
     int iTrigger = 0;
 
+    Ship_SetThrust(&myShip, 0);
     Ship_SetLocation( &myShip, 320, 240);
 
     Ship_SetAngle( &myShip, -90.0f);
@@ -775,11 +868,11 @@ int main(int argc, char *argv[])
                     }
                     if (event.jaxis.axis==1){
                         if (event.jaxis.value>100){
-                            iAccelerate = -1;
+                            Ship_SetThrust(&myShip, -1);
                         }else if (event.jaxis.value<-100){
-                            iAccelerate = 1;                        
+                            Ship_SetThrust(&myShip, 1);
                         }else{
-                            iAccelerate = 0;
+                            Ship_SetThrust(&myShip, 0);
                         }
                     }
 
@@ -839,9 +932,9 @@ int main(int argc, char *argv[])
                 }else if(event.key.keysym.sym == SDLK_RIGHT){
                     iRotate = -1;
                 }else if(event.key.keysym.sym == SDLK_UP){
-                    iAccelerate = 1;
+                    Ship_SetThrust(&myShip, 1);
                 }else if(event.key.keysym.sym == SDLK_DOWN){
-                    iAccelerate = -1;
+                    Ship_SetThrust(&myShip, -1);
                 }else if(event.key.keysym.sym == SDLK_SPACE){
                     //SDL_CaptureMouse(SDL_TRUE);
                     iTrigger = 1;
@@ -862,9 +955,9 @@ int main(int argc, char *argv[])
                 }else if(event.key.keysym.sym == SDLK_RIGHT){
                     iRotate = 0;
                 }else if(event.key.keysym.sym == SDLK_UP){
-                    iAccelerate = 0;
+                    Ship_SetThrust(&myShip, 0);
                 }else if(event.key.keysym.sym == SDLK_DOWN){
-                    iAccelerate = 0;
+                    Ship_SetThrust(&myShip, 0);
                 }else if(event.key.keysym.sym == SDLK_SPACE){
                     iTrigger = 0;
                 }
@@ -880,9 +973,9 @@ int main(int argc, char *argv[])
             }
 
 
-            if (iAccelerate>0){
+            if (myShip.iThrust>0){
                 Ship_Accelerate(&myShip, 0.015f);
-            }else if (iAccelerate<0){
+            }else if (myShip.iThrust<0){
                 Ship_Decelerate(&myShip, 0.015f);
             }
 
@@ -974,6 +1067,7 @@ int main(int argc, char *argv[])
     // Free Game Objects
     FreeBullets(&listBullets);
     FreeRocks(&listRocks);
+    FreeExplosions(&listExplosions);
 
     //SDL_Delay(3000);
 

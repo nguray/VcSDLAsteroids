@@ -26,6 +26,7 @@ typedef struct Ship{
     float y;
     float angle;
     int   iThrust;
+    int   iRotate;
     SDL_FPoint u;
     SDL_FPoint n;
     SDL_FPoint v;
@@ -76,12 +77,19 @@ void AddNewExplosion(Explosion **listExplosions,float x,float y,float vx,float v
     //------------------------------------------------
     float coeffRa = PI/180.0f;
     if (ptrExplosion = (Explosion *) calloc(1,sizeof(Explosion))){
-        ra = 0.0f;
+        // Compute steering angle
+        if (fabs(vx)<0.000001f){
+            ra = 90.0;
+        }else if (fabs(vy)<0.000001f){
+            ra = 0.0f;
+        }else{
+            ra = atan2f(vy, vx);
+        }
         ptrExplosion->iState = 0;
         ptrExplosion->nbVertices = 8;
         for (int i=0; i<8; ++i){
-            e_vx = 2.5f*cos(i*45*coeffRa) + vx; 
-            e_vy = 2.5f*sin(i*45*coeffRa) + vy;
+            e_vx = 2.5f*cos(ra + i*45*coeffRa) + vx; 
+            e_vy = 2.5f*sin(ra + i*45*coeffRa) + vy;
             ptrExplosion->velocities[i].x = e_vx; 
             ptrExplosion->velocities[i].y = e_vy;
             ptrExplosion->vertices[i].x = x; 
@@ -238,15 +246,13 @@ void Ship_Draw( Ship *ptrShip, SDL_Renderer *renderer)
 
 
     if (ptrShip->iThrust==1){
-
+        // Draw Exhaust gas during acceleration
         SDL_SetRenderDrawColor(renderer, white.r, white.g, white.b, white.a);
 
         x1 = ptrShip->x + ShipShape[1].y * ptrShip->u.x + ShipShape[1].x * ptrShip->n.x - 4.0*ptrShip->n.x;
         y1 = ptrShip->y + ShipShape[1].y * ptrShip->u.y + ShipShape[1].x * ptrShip->n.y - 4.0*ptrShip->n.y;
-
         x2 = ptrShip->x + ShipShape[1].y * ptrShip->u.x + ShipShape[1].x * ptrShip->n.x - 4.0*ptrShip->n.x - 10.0*ptrShip->u.x;
         y2 = ptrShip->y + ShipShape[1].y * ptrShip->u.y + ShipShape[1].x * ptrShip->n.y - 4.0*ptrShip->n.y - 10.0*ptrShip->u.y;
-
         pts[0].x = x1;
         pts[0].y = y1; 
         pts[1].x = x2;
@@ -255,7 +261,6 @@ void Ship_Draw( Ship *ptrShip, SDL_Renderer *renderer)
 
         x1 = ptrShip->x + ShipShape[2].y * ptrShip->u.x + ShipShape[2].x * ptrShip->n.x + 4.0*ptrShip->n.x;
         y1 = ptrShip->y + ShipShape[2].y * ptrShip->u.y + ShipShape[2].x * ptrShip->n.y + 4.0*ptrShip->n.y;
-
         x2 = ptrShip->x + ShipShape[2].y * ptrShip->u.x + ShipShape[2].x * ptrShip->n.x + 4.0*ptrShip->n.x - 10.0*ptrShip->u.x;
         y2 = ptrShip->y + ShipShape[2].y * ptrShip->u.y + ShipShape[2].x * ptrShip->n.y + 4.0*ptrShip->n.y - 10.0*ptrShip->u.y;
 
@@ -266,11 +271,11 @@ void Ship_Draw( Ship *ptrShip, SDL_Renderer *renderer)
         SDL_RenderDrawLines(renderer, pts, 2);
 
     }else if (ptrShip->iThrust==-1){
-
+        // Draw Exhaust gas during deceleration
         SDL_SetRenderDrawColor(renderer, white.r, white.g, white.b, white.a);
+
         x1 = ptrShip->x - 6.0*ptrShip->n.x;
         y1 = ptrShip->y - 6.0*ptrShip->n.y;
-
         x2 = ptrShip->x - 8.0*ptrShip->n.x + 10.0*ptrShip->u.x;
         y2 = ptrShip->y - 8.0*ptrShip->n.y + 10.0*ptrShip->u.y;
 
@@ -282,12 +287,61 @@ void Ship_Draw( Ship *ptrShip, SDL_Renderer *renderer)
 
         x1 = ptrShip->x + 6.0*ptrShip->n.x;
         y1 = ptrShip->y + 6.0*ptrShip->n.y;
-
         x2 = ptrShip->x + 8.0*ptrShip->n.x + 10.0*ptrShip->u.x;
         y2 = ptrShip->y + 8.0*ptrShip->n.y + 10.0*ptrShip->u.y;
 
         pts[0].x = x1;
         pts[0].y = y1; 
+        pts[1].x = x2;
+        pts[1].y = y2;
+        SDL_RenderDrawLines(renderer, pts, 2);
+
+    }
+
+    if (ptrShip->iRotate>0){
+        SDL_SetRenderDrawColor(renderer, white.r, white.g, white.b, white.a);
+        x1 = ptrShip->x - 6.0*ptrShip->n.x;
+        y1 = ptrShip->y - 6.0*ptrShip->n.y;
+        x2 = ptrShip->x - 8.0*ptrShip->n.x + 8.0*ptrShip->u.x;
+        y2 = ptrShip->y - 8.0*ptrShip->n.y + 8.0*ptrShip->u.y;
+
+        pts[0].x = x1;
+        pts[0].y = y1; 
+        pts[1].x = x2;
+        pts[1].y = y2;
+        SDL_RenderDrawLines(renderer, pts, 2);
+
+        x1 = ptrShip->x + ShipShape[1].y * ptrShip->u.x + ShipShape[1].x * ptrShip->n.x - 4.0*ptrShip->n.x;
+        y1 = ptrShip->y + ShipShape[1].y * ptrShip->u.y + ShipShape[1].x * ptrShip->n.y - 4.0*ptrShip->n.y;
+        x2 = ptrShip->x + ShipShape[1].y * ptrShip->u.x + ShipShape[1].x * ptrShip->n.x - 4.0*ptrShip->n.x - 8.0*ptrShip->u.x;
+        y2 = ptrShip->y + ShipShape[1].y * ptrShip->u.y + ShipShape[1].x * ptrShip->n.y - 4.0*ptrShip->n.y - 8.0*ptrShip->u.y;
+        pts[0].x = x1;
+        pts[0].y = y1; 
+        pts[1].x = x2;
+        pts[1].y = y2;
+        SDL_RenderDrawLines(renderer, pts, 2);
+
+
+    }else if (ptrShip->iRotate<0){
+        SDL_SetRenderDrawColor(renderer, white.r, white.g, white.b, white.a);
+         x1 = ptrShip->x + 6.0*ptrShip->n.x;
+        y1 = ptrShip->y + 6.0*ptrShip->n.y;
+        x2 = ptrShip->x + 8.0*ptrShip->n.x + 8.0*ptrShip->u.x;
+        y2 = ptrShip->y + 8.0*ptrShip->n.y + 8.0*ptrShip->u.y;
+
+        pts[0].x = x1;
+        pts[0].y = y1; 
+        pts[1].x = x2;
+        pts[1].y = y2;
+        SDL_RenderDrawLines(renderer, pts, 2);
+
+        x1 = ptrShip->x + ShipShape[2].y * ptrShip->u.x + ShipShape[2].x * ptrShip->n.x + 4.0*ptrShip->n.x;
+        y1 = ptrShip->y + ShipShape[2].y * ptrShip->u.y + ShipShape[2].x * ptrShip->n.y + 4.0*ptrShip->n.y;
+        x2 = ptrShip->x + ShipShape[2].y * ptrShip->u.x + ShipShape[2].x * ptrShip->n.x + 4.0*ptrShip->n.x - 8.0*ptrShip->u.x;
+        y2 = ptrShip->y + ShipShape[2].y * ptrShip->u.y + ShipShape[2].x * ptrShip->n.y + 4.0*ptrShip->n.y - 8.0*ptrShip->u.y;
+
+        pts[0].x = x1;
+        pts[0].y = y1;
         pts[1].x = x2;
         pts[1].y = y2;
         SDL_RenderDrawLines(renderer, pts, 2);
@@ -380,6 +434,12 @@ void Ship_SetThrust(Ship *ptrShip, int iThrust)
 {
     //
     ptrShip->iThrust = iThrust;
+}
+
+void Ship_SetRotate(Ship *ptrShip, int iRotate)
+{
+    //
+    ptrShip->iRotate = iRotate;
 }
 
 //-------------------------------------------------------------------
@@ -775,10 +835,10 @@ int main(int argc, char *argv[])
     Rock    *listRocks = NULL;
     Explosion *listExplosions = NULL;
 
-    int iRotate = 0;
     int iTrigger = 0;
 
     Ship_SetThrust(&myShip, 0);
+    Ship_SetRotate(&myShip, 0);
     Ship_SetLocation( &myShip, 320, 240);
 
     Ship_SetAngle( &myShip, -90.0f);
@@ -859,11 +919,11 @@ int main(int argc, char *argv[])
                     printf("Joystick event axis  %d --> %d\n",event.jaxis.axis,event.jaxis.value); // axis number
                     if (event.jaxis.axis==4){
                         if (event.jaxis.value>100){
-                            iRotate = 1;
+                            Ship_SetRotate(&myShip, 1);
                         }else if (event.jaxis.value<-100){
-                            iRotate = -1;                        
+                            Ship_SetRotate(&myShip, -1);
                         }else{
-                            iRotate = 0;
+                            Ship_SetRotate(&myShip, 0);
                         }
                     }
                     if (event.jaxis.axis==1){
@@ -928,9 +988,9 @@ int main(int argc, char *argv[])
                     quit = SDL_TRUE;
                     //printf("Escape Key\n");
                 }else if(event.key.keysym.sym == SDLK_LEFT){
-                    iRotate = 1;
+                    Ship_SetRotate(&myShip,1);
                 }else if(event.key.keysym.sym == SDLK_RIGHT){
-                    iRotate = -1;
+                    Ship_SetRotate(&myShip,-1);
                 }else if(event.key.keysym.sym == SDLK_UP){
                     Ship_SetThrust(&myShip, 1);
                 }else if(event.key.keysym.sym == SDLK_DOWN){
@@ -951,9 +1011,9 @@ int main(int argc, char *argv[])
             }else if ((event.type == SDL_KEYUP)){
                 //printf("KeyUp\n");
                 if (event.key.keysym.sym == SDLK_LEFT){
-                    iRotate = 0;
+                    Ship_SetRotate(&myShip, 0);
                 }else if(event.key.keysym.sym == SDLK_RIGHT){
-                    iRotate = 0;
+                    Ship_SetRotate(&myShip, 0);
                 }else if(event.key.keysym.sym == SDLK_UP){
                     Ship_SetThrust(&myShip, 0);
                 }else if(event.key.keysym.sym == SDLK_DOWN){
@@ -966,9 +1026,9 @@ int main(int argc, char *argv[])
 
         if (fPause==SDL_FALSE){
 
-            if (iRotate==1){
+            if (myShip.iRotate==1){
                 Ship_SetAngle(&myShip, myShip.angle - 1.0f);
-            }else if (iRotate==-1){
+            }else if (myShip.iRotate==-1){
                 Ship_SetAngle(&myShip, myShip.angle + 1.0f);
             }
 

@@ -209,11 +209,12 @@ void UpdateExplosionssList(Explosion **listExplosions)
 
 void Ship_Draw( Ship *ptrShip, SDL_Renderer *renderer)
 {
-    float x1,y1,x2,y2,x3,y3,x4,y4;
     SDL_Point pts[5];
     SDL_Color white = {220, 220, 220, 255};
     SDL_Color orange = {255, 127, 40, 255};
+    float x1,y1,x2,y2,x3,y3,x4,y4;
 
+    // Draw space ship
     SDL_SetRenderDrawColor(renderer, orange.r, orange.g, orange.b, orange.a);
 
     x1 = ptrShip->x + ShipShape[0].y * ptrShip->u.x + ShipShape[0].x * ptrShip->n.x;
@@ -231,17 +232,12 @@ void Ship_Draw( Ship *ptrShip, SDL_Renderer *renderer)
 
     pts[0].x = x1;
     pts[0].y = y1;
-
     pts[1].x = x2;
     pts[1].y = y2;
-
     pts[2].x = x3;
     pts[2].y = y3;
-
     pts[3].x = x1;
     pts[3].y = y1;
-
-    //SDL_SetRenderDrawColor(renderer, orange.r, orange.g, orange.b, orange.a);
     SDL_RenderDrawLines(renderer, pts, 4);
 
 
@@ -249,6 +245,7 @@ void Ship_Draw( Ship *ptrShip, SDL_Renderer *renderer)
         // Draw Exhaust gas during acceleration
         SDL_SetRenderDrawColor(renderer, white.r, white.g, white.b, white.a);
 
+        //_Draw right acceleratio exhaust gas
         x1 = ptrShip->x + ShipShape[1].y * ptrShip->u.x + ShipShape[1].x * ptrShip->n.x - 4.0*ptrShip->n.x;
         y1 = ptrShip->y + ShipShape[1].y * ptrShip->u.y + ShipShape[1].x * ptrShip->n.y - 4.0*ptrShip->n.y;
         x2 = ptrShip->x + ShipShape[1].y * ptrShip->u.x + ShipShape[1].x * ptrShip->n.x - 4.0*ptrShip->n.x - 10.0*ptrShip->u.x;
@@ -259,11 +256,11 @@ void Ship_Draw( Ship *ptrShip, SDL_Renderer *renderer)
         pts[1].y = y2;
         SDL_RenderDrawLines(renderer, pts, 2);
 
+        //_Draw left acceleratio exhaust gas
         x1 = ptrShip->x + ShipShape[2].y * ptrShip->u.x + ShipShape[2].x * ptrShip->n.x + 4.0*ptrShip->n.x;
         y1 = ptrShip->y + ShipShape[2].y * ptrShip->u.y + ShipShape[2].x * ptrShip->n.y + 4.0*ptrShip->n.y;
         x2 = ptrShip->x + ShipShape[2].y * ptrShip->u.x + ShipShape[2].x * ptrShip->n.x + 4.0*ptrShip->n.x - 10.0*ptrShip->u.x;
         y2 = ptrShip->y + ShipShape[2].y * ptrShip->u.y + ShipShape[2].x * ptrShip->n.y + 4.0*ptrShip->n.y - 10.0*ptrShip->u.y;
-
         pts[0].x = x1;
         pts[0].y = y1;
         pts[1].x = x2;
@@ -274,22 +271,22 @@ void Ship_Draw( Ship *ptrShip, SDL_Renderer *renderer)
         // Draw Exhaust gas during deceleration
         SDL_SetRenderDrawColor(renderer, white.r, white.g, white.b, white.a);
 
+        // Draw right deceleratio exhaust gas
         x1 = ptrShip->x - 6.0*ptrShip->n.x;
         y1 = ptrShip->y - 6.0*ptrShip->n.y;
         x2 = ptrShip->x - 8.0*ptrShip->n.x + 10.0*ptrShip->u.x;
         y2 = ptrShip->y - 8.0*ptrShip->n.y + 10.0*ptrShip->u.y;
-
         pts[0].x = x1;
         pts[0].y = y1; 
         pts[1].x = x2;
         pts[1].y = y2;
         SDL_RenderDrawLines(renderer, pts, 2);
 
+        // Draw left deceleratio exhaust gas
         x1 = ptrShip->x + 6.0*ptrShip->n.x;
         y1 = ptrShip->y + 6.0*ptrShip->n.y;
         x2 = ptrShip->x + 8.0*ptrShip->n.x + 10.0*ptrShip->u.x;
         y2 = ptrShip->y + 8.0*ptrShip->n.y + 10.0*ptrShip->u.y;
-
         pts[0].x = x1;
         pts[0].y = y1; 
         pts[1].x = x2;
@@ -300,17 +297,19 @@ void Ship_Draw( Ship *ptrShip, SDL_Renderer *renderer)
 
     if (ptrShip->iRotate>0){
         SDL_SetRenderDrawColor(renderer, white.r, white.g, white.b, white.a);
+
+        // Draw left decceleration exhaust gas
         x1 = ptrShip->x - 6.0*ptrShip->n.x;
         y1 = ptrShip->y - 6.0*ptrShip->n.y;
         x2 = ptrShip->x - 8.0*ptrShip->n.x + 8.0*ptrShip->u.x;
         y2 = ptrShip->y - 8.0*ptrShip->n.y + 8.0*ptrShip->u.y;
-
         pts[0].x = x1;
         pts[0].y = y1; 
         pts[1].x = x2;
         pts[1].y = y2;
         SDL_RenderDrawLines(renderer, pts, 2);
 
+        //_Draw right acceleratio exhaust gas
         x1 = ptrShip->x + ShipShape[1].y * ptrShip->u.x + ShipShape[1].x * ptrShip->n.x - 4.0*ptrShip->n.x;
         y1 = ptrShip->y + ShipShape[1].y * ptrShip->u.y + ShipShape[1].x * ptrShip->n.y - 4.0*ptrShip->n.y;
         x2 = ptrShip->x + ShipShape[1].y * ptrShip->u.x + ShipShape[1].x * ptrShip->n.x - 4.0*ptrShip->n.x - 8.0*ptrShip->u.x;
@@ -321,25 +320,25 @@ void Ship_Draw( Ship *ptrShip, SDL_Renderer *renderer)
         pts[1].y = y2;
         SDL_RenderDrawLines(renderer, pts, 2);
 
-
     }else if (ptrShip->iRotate<0){
         SDL_SetRenderDrawColor(renderer, white.r, white.g, white.b, white.a);
-         x1 = ptrShip->x + 6.0*ptrShip->n.x;
+
+        // Draw right decceleration exhaust gas
+        x1 = ptrShip->x + 6.0*ptrShip->n.x;
         y1 = ptrShip->y + 6.0*ptrShip->n.y;
         x2 = ptrShip->x + 8.0*ptrShip->n.x + 8.0*ptrShip->u.x;
         y2 = ptrShip->y + 8.0*ptrShip->n.y + 8.0*ptrShip->u.y;
-
         pts[0].x = x1;
         pts[0].y = y1; 
         pts[1].x = x2;
         pts[1].y = y2;
         SDL_RenderDrawLines(renderer, pts, 2);
 
+        //_Draw left acceleratio exhaust gas
         x1 = ptrShip->x + ShipShape[2].y * ptrShip->u.x + ShipShape[2].x * ptrShip->n.x + 4.0*ptrShip->n.x;
         y1 = ptrShip->y + ShipShape[2].y * ptrShip->u.y + ShipShape[2].x * ptrShip->n.y + 4.0*ptrShip->n.y;
         x2 = ptrShip->x + ShipShape[2].y * ptrShip->u.x + ShipShape[2].x * ptrShip->n.x + 4.0*ptrShip->n.x - 8.0*ptrShip->u.x;
         y2 = ptrShip->y + ShipShape[2].y * ptrShip->u.y + ShipShape[2].x * ptrShip->n.y + 4.0*ptrShip->n.y - 8.0*ptrShip->u.y;
-
         pts[0].x = x1;
         pts[0].y = y1;
         pts[1].x = x2;

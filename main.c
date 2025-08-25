@@ -18,7 +18,30 @@
 #define WIN_WIDTH  640
 #define WIN_HEIGHT 480
 
-const SDL_Point ShipShape[3] = {{0,15},{10,-10},{-10,-10}};
+const SDL_Point ShipShape[] = {{0,15},{10,-10},{-10,-10}};
+
+typedef struct Segment {
+    SDL_Point start;
+    SDL_Point end;
+} Segment;
+
+typedef struct Symbol {
+    int     nbSegments;
+    Segment Segments[16];
+} Symbol;
+
+Symbol num0 = { 4, {{{0,0},{8,0}},{{8,0},{8,12}},{{8,12},{0,12}},{{0,12},{0,0}}}};
+Symbol num1 = { 1, {{{4,0},{4,12}}}};
+Symbol num2 = { 5, {{{0,0},{8,0}}, {{8,0},{8,5}}, {{8,5},{0,5}}, {{0,5},{0,12}}, {{0,12},{8,12}}} };
+Symbol num3 = { 4, {{{0,0},{8,0}}, {{8,0},{8,12}}, {{8,12},{0,12}}, {{0,5},{8,5}}} };
+Symbol num4 = { 3, {{{0,0},{0,5}}, {{0,5},{8,5}}, {{8,0},{8,12}}} };
+Symbol num5 = { 5, {{{0,0},{8,0}}, {{0,0},{0,5}}, {{0,5},{8,5}}, {{8,5},{8,12}}, {{8,12},{0,12}}} };
+Symbol num6 = { 5, {{{0,0},{8,0}}, {{0,0},{0,12}}, {{0,5},{8,5}}, {{8,5},{8,12}}, {{8,12},{0,12}}} };
+Symbol num7 = { 2, {{{0,0},{8,0}}, {{8,0},{8,12}}} };
+Symbol num8 = { 5, {{{0,0},{0,12}}, {{8,0},{8,12}}, {{0,0},{8,0}}, {{0,5},{8,5}}, {{0,12},{8,12}}} };
+Symbol num9 = { 5, {{{0,0},{8,0}}, {{0,5},{8,5}}, {{0,0},{0,5}}, {{8,0},{8,12}}, {{0,12},{8,12}}} };
+
+Symbol *nums[] = {&num0, &num1, &num2, &num3, &num4, &num5, &num6, &num7, &num8, &num9};
 
 typedef struct Ship{
 
@@ -66,6 +89,26 @@ typedef struct Explosion {
     struct Explosion    *next;
 } Explosion;
 
+//-------------------------------------------------------------------
+//-------------------------------------------------------------------
+void Symbol_Draw(Symbol *ptrSymbol,SDL_Renderer *renderer,float x,float y)
+{
+    float   x1,y1,x2,y2;
+    SDL_Color light_grey = {200, 200, 200, 255};
+    //---------------------------------------------
+    
+    SDL_SetRenderDrawColor(renderer, light_grey.r, light_grey.g, light_grey.b, light_grey.a);
+
+    for (int i=0;i<ptrSymbol->nbSegments;++i){
+        x1 = x + ptrSymbol->Segments[i].start.x;
+        y1 = y + ptrSymbol->Segments[i].start.y;
+        x2 = x + ptrSymbol->Segments[i].end.x;
+        y2 = y + ptrSymbol->Segments[i].end.y;
+        SDL_RenderDrawLineF(renderer,x1,y1,x2,y2);
+    }
+
+
+}
 
 //-------------------------------------------------------------------
 //-------------------------------------------------------------------
@@ -117,7 +160,7 @@ void UpdateExplosions(Explosion *listExplosions)
 /*-------------------------------------------------------------*\
     Compute new explosions states
 
-    Raymond NGUYEN THANH                        22-08-2025
+    Raymond NGUYEN THANH               {{8,0},{8,10}}         22-08-2025
 \*-------------------------------------------------------------*/
 {
     Explosion *ptrExplosion;
@@ -207,28 +250,6 @@ void UpdateExplosionssList(Explosion **listExplosions)
 //-------------------------------------------------------------------
 //-------------------------------------------------------------------
 
-void Draw_ExhaustGas(SDL_Renderer *renderer, float x1, float y1, float x2, float y2)
-{
-    SDL_Point pts[5];
-    SDL_Color white = {220, 220, 220, 128};
-    //---------------------------------------------------------------
-    float vx = x2-x1;
-    float vy = y2-y1; 
-    float norm = sqrt(vx*vx+vy*vy);
-    SDL_FPoint u = {vx/norm,vy/norm};
-    SDL_FPoint n = {-u.y,u.x};
-    pts[0].x = x1 + u.x;
-    pts[0].y = y1 + u.y;
-    pts[1].x = x1 + 1.5*n.x + 1.5*u.x;
-    pts[1].y = y1 + 1.5*n.y + 1.5*u.y;
-    pts[2].x = x2;
-    pts[2].y = y2;
-    pts[3].x = x1 - 1.5*n.x + 1.5*u.x;
-    pts[3].y = y1 - 1.5*n.y + 1.5*u.y;
-    pts[4] = pts[0];
-    SDL_RenderDrawLines(renderer, pts, 5);
-
-}
 
 void Ship_Draw( Ship *ptrShip, SDL_Renderer *renderer)
 {
@@ -263,6 +284,28 @@ void Ship_Draw( Ship *ptrShip, SDL_Renderer *renderer)
     pts[3].y = y1;
     SDL_RenderDrawLines(renderer, pts, 4);
 
+    void Draw_ExhaustGas(SDL_Renderer *renderer, float x1, float y1, float x2, float y2)
+    {
+        SDL_Point pts[5];
+        SDL_Color white = {220, 220, 220, 128};
+        //---------------------------------------------------------------
+        float vx = x2-x1;
+        float vy = y2-y1; 
+        float norm = sqrt(vx*vx+vy*vy);
+        SDL_FPoint u = {vx/norm,vy/norm};
+        SDL_FPoint n = {-u.y,u.x};
+        pts[0].x = x1 + u.x;
+        pts[0].y = y1 + u.y;
+        pts[1].x = x1 + 1.5*n.x + 1.5*u.x;
+        pts[1].y = y1 + 1.5*n.y + 1.5*u.y;
+        pts[2].x = x2;
+        pts[2].y = y2;
+        pts[3].x = x1 - 1.5*n.x + 1.5*u.x;
+        pts[3].y = y1 - 1.5*n.y + 1.5*u.y;
+        pts[4] = pts[0];
+        SDL_RenderDrawLines(renderer, pts, 5);
+
+    }
 
     if (ptrShip->iThrust==1){
         // Draw Exhaust gas during accelerationinner
@@ -809,6 +852,17 @@ void FreeExplosions(Explosion **listExplosions)
 
 }
 
+void Draw_Score(SDL_Renderer *renderer,int score){
+    //------------------------------------------------------
+    int base,n,ic=0;
+    for(int i = 5;i>=0;--i){
+        base = pow(10,i);
+        n = (int) (score / base);
+        Symbol_Draw(nums[n], renderer, 50.0+ic*14.0, 5.0);
+        score -= n*base;
+        ic++;
+    }
+}
 
 int main(int argc, char *argv[])
 {
@@ -819,6 +873,8 @@ int main(int argc, char *argv[])
 
     SDL_Color orange = {255, 127, 40, 255};
     SDL_Color dark_blue = {10, 10, 150, 255};
+
+    int myScore = 0;
 
     Ship myShip;
 
@@ -838,6 +894,9 @@ int main(int argc, char *argv[])
     float ra = myShip.angle*PI/180.0;
     Ship_SetVelocity(&myShip, 0.2f*cos(ra), 0.2f*sin(ra));
 
+
+
+    printf("nbVertices=%d\n",sizeof(ShipShape)/sizeof(SDL_Point));
 
     srand(time(NULL));   // Initialization, should only be called once.
 
@@ -1063,6 +1122,8 @@ int main(int argc, char *argv[])
                     if (ptrRock=CheckBulletHitRocks(ptrBullet, listRocks)){
                         AddNewExplosion(&listExplosions,ptrRock->x,ptrRock->y, ptrRock->v.x, ptrRock->v.y);
                         Mix_PlayChannel( -1, explosionSound, 0 );
+                        myScore += 30;
+                        //printf("SCORE = %d\n",myScore);
                     }
                     //
                     ptrBullet = ptrBullet->next;
@@ -1108,6 +1169,9 @@ int main(int argc, char *argv[])
         DrawBullets( listBullets, renderer);
         DrawRocks(listRocks, renderer);
         DrawExplosions(listExplosions, renderer);
+
+
+        Draw_Score(renderer, myScore);
 
         //
         SDL_RenderPresent(renderer);

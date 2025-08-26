@@ -1,11 +1,8 @@
-#include "rock.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-
-#define PI 3.141592654
-#define WIN_WIDTH  640
-#define WIN_HEIGHT 480
+#include "game.h"
+#include "rock.h"
 
 void AddNewRock(Rock **listRocks)
 /*-------------------------------------------------------------*\
@@ -23,7 +20,7 @@ void AddNewRock(Rock **listRocks)
         ptrRock->x = rand() % WIN_WIDTH;
         ptrRock->y = rand() % WIN_HEIGHT;
         ptrRock->fDeleted = SDL_FALSE;
-        a = ((float) (rand() % 360))*PI/180.0f;
+        a = ((float) (rand() % 360))*M_PI/180.0f;
         ptrRock->v.x = 0.3f * cos(a);
         ptrRock->v.y = 0.3f * sin(a);
 
@@ -32,8 +29,8 @@ void AddNewRock(Rock **listRocks)
         ptrRock->rayMax = 0.0f;
         ptrRock->rayMin = 1000.0;
         for(int i=0;i<10;++i){
-            a += ((float) (rand() % 40 + 20))*PI/180.0f;
-            if (a>2*PI) break;
+            a += ((float) (rand() % 40 + 20))*M_PI/180.0f;
+            if (a>2*M_PI) break;
             r = ((float) (rand() % 5)) + 10.0;
             if (r < ptrRock->rayMin){
                 ptrRock->rayMin = r;

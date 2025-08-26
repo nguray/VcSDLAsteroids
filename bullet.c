@@ -1,8 +1,5 @@
+#include "game.h"
 #include "bullet.h"
-
-#define PI 3.141592654
-#define WIN_WIDTH  640
-#define WIN_HEIGHT 480
 
 void AddNewBullet(Bullet **listBullets, float x, float y, SDL_FPoint u)
 /*-------------------------------------------------------------*\

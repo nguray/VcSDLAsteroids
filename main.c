@@ -1,3 +1,4 @@
+
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_mixer.h>
 #include <stdio.h>
@@ -5,11 +6,12 @@
 #include <math.h>
 #include <time.h>
 
+#include "game.h"
+
 #include "bullet.h"
 #include "rock.h"
 #include "explosion.h"
 
-#define PI 3.141592654
 
 // gcc sdl01.c -o sdl01 $(sdl2-config --cflags --libs)
 // for github use  ssh-keygen -o -t rsa -C "windows-ssh@mcnz.com"
@@ -19,8 +21,6 @@
 //   sudo apt remove xserver-xorg-input-joystick-dev
 
 
-#define WIN_WIDTH  640
-#define WIN_HEIGHT 480
 
 const SDL_Point ShipShape[] = {{0,15},{10,-10},{-10,-10}};
 const SDL_Point miniShipShape[] = {{0,-10},{7,7},{-7,7}};
@@ -49,7 +49,7 @@ Symbol num9 = { 5, {{{0,0},{8,0}}, {{0,5},{8,5}}, {{0,0},{0,5}}, {{8,0},{8,12}},
 
 Symbol *nums[] = {&num0, &num1, &num2, &num3, &num4, &num5, &num6, &num7, &num8, &num9};
 
-int myLifes = 3;
+
 
 typedef struct Ship{
 
@@ -63,8 +63,6 @@ typedef struct Ship{
     SDL_FPoint v;
 
 } Ship;
-
-
 
 
 //-------------------------------------------------------------------
@@ -87,7 +85,6 @@ void Symbol_Draw(Symbol *ptrSymbol,SDL_Renderer *renderer,float x,float y)
 
 
 }
-
 
 
 //-------------------------------------------------------------------
@@ -260,8 +257,8 @@ void Ship_SetAngle( Ship *ptrShip, float a)
     //--------------------------------------
     ptrShip->angle = a;
 
-    ptrShip->u.x = cos(a*PI/180.0);
-    ptrShip->u.y = sin(a*PI/180.0);
+    ptrShip->u.x = cos(a*M_PI/180.0);
+    ptrShip->u.y = sin(a*M_PI/180.0);
 
     ptrShip->n.x = -ptrShip->u.y;
     ptrShip->n.y = ptrShip->u.x;
@@ -399,7 +396,6 @@ int main(int argc, char *argv[])
     SDL_Color orange = {255, 127, 40, 255};
     SDL_Color dark_blue = {10, 10, 150, 255};
 
-    int myScore = 0;
 
     Ship myShip;
 
@@ -416,7 +412,7 @@ int main(int argc, char *argv[])
     Ship_SetAngle( &myShip, -90.0f);
 
 
-    float ra = myShip.angle*PI/180.0;
+    float ra = myShip.angle*M_PI/180.0;
     Ship_SetVelocity(&myShip, 0.2f*cos(ra), 0.2f*sin(ra));
 
 

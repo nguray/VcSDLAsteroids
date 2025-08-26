@@ -4,6 +4,7 @@
         "math.h": "c",
         "sdl_mixer.h": "c",
         "algorithm": "c",
-        "explosion.h": "c"
+        "explosion.h": "c",
+        "sdl.h": "c"
     }
 }

@@ -5,17 +5,16 @@
 
 
 \*-------------------------------------------------------------------*/
+#include "game.h"
 #include "explosion.h"
 #include <math.h>
-
-#define PI 3.141592654
 
 void AddNewExplosion(Explosion **listExplosions,float x,float y,float vx,float vy)
 {
     float ra,e_vx,e_vy;
     Explosion *ptrExplosion,*ptrCur;
     //------------------------------------------------
-    float coeffRa = PI/180.0f;
+    float coeffRa = M_PI/180.0f;
     if (ptrExplosion = (Explosion *) calloc(1,sizeof(Explosion))){
         // Compute steering angle
         if (fabs(vx)<0.000001f){

@@ -8,3 +8,4 @@
 
 extern int myLifes;
 extern int myScore;
+extern int iLevel;

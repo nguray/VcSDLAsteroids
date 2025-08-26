@@ -61,6 +61,7 @@ typedef struct Ship{
     SDL_FPoint u;
     SDL_FPoint n;
     SDL_FPoint v;
+    SDL_FPoint vertices[3];
 
 } Ship;
 
@@ -122,6 +123,11 @@ void Ship_Draw( Ship *ptrShip, SDL_Renderer *renderer)
     pts[3].x = x1;
     pts[3].y = y1;
     SDL_RenderDrawLines(renderer, pts, 4);
+
+    //-- Store vertices for collision checking
+    ptrShip->vertices[0] = (SDL_FPoint) {x1,y1};
+    ptrShip->vertices[1] = (SDL_FPoint) {x2,y2};
+    ptrShip->vertices[2] = (SDL_FPoint) {x3,y3};
 
     //-- Draw remain life
     x0 = WIN_WIDTH - 100.0f;
@@ -386,6 +392,16 @@ void Draw_Score(SDL_Renderer *renderer,int score){
     }
 }
 
+void NewLevel( Rock **listRocks,int iLevel)
+{
+    int nbRocks = iLevel * 4 + 7;
+    //-----------------------------------------------------
+    for(int i = 0; i<nbRocks;++i){
+        AddNewRock(listRocks);
+
+    }
+}
+
 int main(int argc, char *argv[])
 {
     SDL_Window *window = NULL;
@@ -416,15 +432,11 @@ int main(int argc, char *argv[])
     Ship_SetVelocity(&myShip, 0.2f*cos(ra), 0.2f*sin(ra));
 
 
-
     printf("nbVertices=%d\n",sizeof(ShipShape)/sizeof(SDL_Point));
 
     srand(time(NULL));   // Initialization, should only be called once.
 
-    for(int i = 0; i<15;++i){
-        AddNewRock(&listRocks);
-
-    }
+    NewLevel( &listRocks, iLevel);
 
     if(0 != SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_JOYSTICK))
     {
@@ -644,7 +656,7 @@ int main(int argc, char *argv[])
                         AddNewExplosion(&listExplosions,ptrRock->x,ptrRock->y, ptrRock->v.x, ptrRock->v.y);
                         Mix_PlayChannel( -1, explosionSound, 0 );
                         myScore += 30;
-                        //printf("SCORE = %d\n",myScore);
+                        
                     }
                     //
                     ptrBullet = ptrBullet->next;
@@ -652,6 +664,40 @@ int main(int argc, char *argv[])
             }
 
             UpdateRocksList(&listRocks);
+            if (listRocks==NULL){
+                iLevel++;
+                NewLevel(&listRocks, iLevel);
+            }
+
+            //-- Check Ship <-> Rock collision
+            SDL_bool fLost = SDL_FALSE;
+            Rock *ptrRock;
+            if (ptrRock=listRocks){
+                float vx,vy,d;
+                do{
+                    for (int i=0;i<3;++i){
+                        vx = ptrRock->x - myShip.vertices[i].x;
+                        vy = ptrRock->y - myShip.vertices[i].y;
+                        d = sqrt(vx*vx+vy*vy);
+                        if (d<ptrRock->rayMax){
+                            fLost = SDL_TRUE;
+                            break;
+                        }
+                    }
+
+                }while((fLost==SDL_FALSE) && (ptrRock=ptrRock->next));
+            }
+
+            if (fLost){
+                myLifes--;
+                if (myLifes==0){
+                    fPause = SDL_TRUE;
+                }else{
+                    myShip.x = WIN_WIDTH/2;
+                    myShip.y = WIN_HEIGHT/2;
+                    myShip.v = (SDL_FPoint) {0.0,0.0};
+                }
+            }
 
 
             //

@@ -3,6 +3,7 @@
         ".als.json": "jsonc",
         "math.h": "c",
         "sdl_mixer.h": "c",
-        "algorithm": "c"
+        "algorithm": "c",
+        "explosion.h": "c"
     }
 }

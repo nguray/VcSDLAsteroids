@@ -5,6 +5,10 @@
 #include <math.h>
 #include <time.h>
 
+#include "bullet.h"
+#include "rock.h"
+#include "explosion.h"
+
 #define PI 3.141592654
 
 // gcc sdl01.c -o sdl01 $(sdl2-config --cflags --libs)
@@ -19,6 +23,7 @@
 #define WIN_HEIGHT 480
 
 const SDL_Point ShipShape[] = {{0,15},{10,-10},{-10,-10}};
+const SDL_Point miniShipShape[] = {{0,-10},{7,7},{-7,7}};
 
 typedef struct Segment {
     SDL_Point start;
@@ -27,8 +32,9 @@ typedef struct Segment {
 
 typedef struct Symbol {
     int     nbSegments;
-    Segment Segments[16];
+    Segment segments[];
 } Symbol;
+
 
 Symbol num0 = { 4, {{{0,0},{8,0}},{{8,0},{8,12}},{{8,12},{0,12}},{{0,12},{0,0}}}};
 Symbol num1 = { 1, {{{4,0},{4,12}}}};
@@ -42,6 +48,8 @@ Symbol num8 = { 5, {{{0,0},{0,12}}, {{8,0},{8,12}}, {{0,0},{8,0}}, {{0,5},{8,5}}
 Symbol num9 = { 5, {{{0,0},{8,0}}, {{0,5},{8,5}}, {{0,0},{0,5}}, {{8,0},{8,12}}, {{0,12},{8,12}}} };
 
 Symbol *nums[] = {&num0, &num1, &num2, &num3, &num4, &num5, &num6, &num7, &num8, &num9};
+
+int myLifes = 3;
 
 typedef struct Ship{
 
@@ -57,37 +65,7 @@ typedef struct Ship{
 } Ship;
 
 
-typedef struct Bullet {
 
-    float           x;
-    float           y;
-    SDL_FPoint      v;
-    SDL_bool        fDeleted;
-    struct Bullet   *next;
-
-} Bullet;
-
-
-typedef struct Rock {
-    float x;
-    float y;
-    SDL_FPoint      v;
-    float           rayMin;
-    float           rayMax;
-    int             nbVertices;
-    SDL_FPoint      vertices[12];
-    SDL_bool        fDeleted;
-    struct Rock     *next;
-} Rock;
-
-typedef struct Explosion {
-    int                 iState;
-    int                 nbVertices;
-    SDL_FPoint          vertices[8];
-    SDL_FPoint          velocities[8];
-    SDL_bool            fDeleted;
-    struct Explosion    *next;
-} Explosion;
 
 //-------------------------------------------------------------------
 //-------------------------------------------------------------------
@@ -100,163 +78,27 @@ void Symbol_Draw(Symbol *ptrSymbol,SDL_Renderer *renderer,float x,float y)
     SDL_SetRenderDrawColor(renderer, light_grey.r, light_grey.g, light_grey.b, light_grey.a);
 
     for (int i=0;i<ptrSymbol->nbSegments;++i){
-        x1 = x + ptrSymbol->Segments[i].start.x;
-        y1 = y + ptrSymbol->Segments[i].start.y;
-        x2 = x + ptrSymbol->Segments[i].end.x;
-        y2 = y + ptrSymbol->Segments[i].end.y;
+        x1 = x + ptrSymbol->segments[i].start.x;
+        y1 = y + ptrSymbol->segments[i].start.y;
+        x2 = x + ptrSymbol->segments[i].end.x;
+        y2 = y + ptrSymbol->segments[i].end.y;
         SDL_RenderDrawLineF(renderer,x1,y1,x2,y2);
     }
 
 
 }
 
-//-------------------------------------------------------------------
-//-------------------------------------------------------------------
 
-void AddNewExplosion(Explosion **listExplosions,float x,float y,float vx,float vy)
-{
-    float ra,e_vx,e_vy;
-    Explosion *ptrExplosion,*ptrCur;
-    //------------------------------------------------
-    float coeffRa = PI/180.0f;
-    if (ptrExplosion = (Explosion *) calloc(1,sizeof(Explosion))){
-        // Compute steering angle
-        if (fabs(vx)<0.000001f){
-            ra = 90.0;
-        }else if (fabs(vy)<0.000001f){
-            ra = 0.0f;
-        }else{
-            ra = atan2f(vy, vx);
-        }
-        ptrExplosion->iState = 0;
-        ptrExplosion->nbVertices = 8;
-        for (int i=0; i<8; ++i){
-            e_vx = 2.5f*cos(ra + i*45*coeffRa) + vx; 
-            e_vy = 2.5f*sin(ra + i*45*coeffRa) + vy;
-            ptrExplosion->velocities[i].x = e_vx; 
-            ptrExplosion->velocities[i].y = e_vy;
-            ptrExplosion->vertices[i].x = x; 
-            ptrExplosion->vertices[i].y = y;
-        }
-
-        ptrExplosion->fDeleted = SDL_FALSE;
-
-        if (ptrCur = *listExplosions){
-            // Find last element
-            while(ptrCur->next){
-                ptrCur = ptrCur->next;
-            }
-            ptrCur->next = ptrExplosion;
-        }else{
-            *listExplosions = ptrExplosion;
-        }
-
-
-    }
-
-}
-
-void UpdateExplosions(Explosion *listExplosions)
-/*-------------------------------------------------------------*\
-    Compute new explosions states
-
-    Raymond NGUYEN THANH               {{8,0},{8,10}}         22-08-2025
-\*-------------------------------------------------------------*/
-{
-    Explosion *ptrExplosion;
-    //----------------------------------------
-    if (ptrExplosion=listExplosions){
-        do{
-            if (ptrExplosion->fDeleted==SDL_FALSE){
-                if (ptrExplosion->iState<10){
-                    for(int i=0;i<ptrExplosion->nbVertices;++i){
-                        ptrExplosion->vertices[i].x += ptrExplosion->velocities[i].x;
-                        ptrExplosion->vertices[i].y += ptrExplosion->velocities[i].y;
-                    }
-                    ptrExplosion->iState++;
-                }else{
-                    ptrExplosion->fDeleted = SDL_TRUE;
-                }
-            }
-            ptrExplosion = ptrExplosion->next;
-        }while(ptrExplosion);
-    }
-}
-
-void DrawExplosions(Explosion *listExplosions, SDL_Renderer *renderer)
-{
-    float x1,y1,x2,y2;
-    float n,vx,vy;
-    Explosion *ptrExplosion;
-    SDL_Color light_grey = {200, 200, 200, 255};
-    //----------------------------------------
-    if (ptrExplosion=listExplosions){
-        do{
-            SDL_SetRenderDrawColor(renderer, light_grey.r, light_grey.g, light_grey.b, light_grey.a);
-            if (ptrExplosion->fDeleted==SDL_FALSE){
-                for (int i=0;i<ptrExplosion->nbVertices;++i){
-                    vx = ptrExplosion->velocities[i].x;
-                    vy = ptrExplosion->velocities[i].y;
-                    n = sqrt(vx*vx+vy*vy);
-                    vx /= n;
-                    vy /= n;
-                    x1 = ptrExplosion->vertices[i].x + 2.0f*vx;
-                    y1 = ptrExplosion->vertices[i].y + 2.0f*vy;
-                    x2 = ptrExplosion->vertices[i].x - 2.0f*vx;
-                    y2 = ptrExplosion->vertices[i].y - 2.0f*vy;
-                    SDL_RenderDrawLineF(renderer, x1, y1, x2, y2);
-                }
-            }
-            ;
-        }while(ptrExplosion = ptrExplosion->next);
-        
-    }
-
-}
-
-void UpdateExplosionssList(Explosion **listExplosions)
-/*-------------------------------------------------------------*\
-    Remove deleted objects from the explosions list
-
-    Raymond NGUYEN THANH                        22-08-2025
-\*-------------------------------------------------------------*/
-{
-    Explosion *ptrFirst=NULL; // For the case of there no active Rock
-    Explosion *ptrPrev=NULL;
-    Explosion *ptrCur,*ptrNext;
-    //---------------------------------------------------------
-    if (ptrCur=*listExplosions){
-        do{
-            ptrNext = ptrCur->next;
-            if (ptrCur->fDeleted==SDL_TRUE){
-                free(ptrCur);
-            }else{
-                ptrCur->next = NULL;
-                if (ptrPrev==NULL){    // No previous active rock
-                    ptrFirst = ptrCur; // Must be the head of the list 
-                    ptrPrev=ptrCur;
-                }else{
-                    ptrPrev->next = ptrCur;
-                    ptrPrev = ptrCur;
-                }
-            }
-            ptrCur = ptrNext;
-        }while(ptrCur);
-        *listExplosions = ptrFirst;
-    }
-
-}
 
 //-------------------------------------------------------------------
 //-------------------------------------------------------------------
-
 
 void Ship_Draw( Ship *ptrShip, SDL_Renderer *renderer)
 {
     SDL_Point pts[5];
     SDL_Color white = {220, 220, 220, 128};
     SDL_Color orange = {255, 127, 40, 255};
-    float x1,y1,x2,y2,x3,y3,x4,y4;
+    float x0,y0,x1,y1,x2,y2,x3,y3,x4,y4;
 
     // Draw space ship
     SDL_SetRenderDrawColor(renderer, orange.r, orange.g, orange.b, orange.a);
@@ -283,6 +125,37 @@ void Ship_Draw( Ship *ptrShip, SDL_Renderer *renderer)
     pts[3].x = x1;
     pts[3].y = y1;
     SDL_RenderDrawLines(renderer, pts, 4);
+
+    //-- Draw remain life
+    x0 = WIN_WIDTH - 100.0f;
+    y0 = 14.0;
+    for (int i=0; i<myLifes; ++i){
+
+        x1 = x0 + miniShipShape[0].x;
+        y1 = y0 + miniShipShape[0].y;
+        SDL_RenderDrawLineF(renderer, x0, y0, x1, y1);
+
+
+        x2 = x0 + miniShipShape[1].x;
+        y2 = y0 + miniShipShape[1].y;
+        SDL_RenderDrawLineF(renderer, x0, y0, x2, y2);
+
+        x3 = x0 + miniShipShape[2].x;
+        y3 = y0 + miniShipShape[2].y;
+        SDL_RenderDrawLineF(renderer, x0, y0, x3, y3);
+
+        pts[0].x = x1;
+        pts[0].y = y1;
+        pts[1].x = x2;
+        pts[1].y = y2;
+        pts[2].x = x3;
+        pts[2].y = y3;
+        pts[3].x = x1;
+        pts[3].y = y1;
+        SDL_RenderDrawLines(renderer, pts, 4);
+
+        x0 += 20.0;
+    }
 
     void Draw_ExhaustGas(SDL_Renderer *renderer, float x1, float y1, float x2, float y2)
     {
@@ -452,7 +325,6 @@ void Ship_Accelerate(Ship *ptrShip, float pac)
 
 }
 
-
 void Ship_Decelerate(Ship *ptrShip, float pac)
 {
     //
@@ -476,311 +348,9 @@ void Ship_SetRotate(Ship *ptrShip, int iRotate)
     ptrShip->iRotate = iRotate;
 }
 
-//-------------------------------------------------------------------
-//-------------------------------------------------------------------
-
-void AddNewBullet(Bullet **listBullets, float x, float y, SDL_FPoint u)
-/*-------------------------------------------------------------*\
-    Create new bullet and append to the end of the list
-
-    Raymond NGUYEN THANH                        18-08-2025
-\*-------------------------------------------------------------*/
-{
-    Bullet *ptrBullet,*ptrCur;
-    //--
-    if (ptrBullet = (Bullet *) calloc(1,sizeof(Bullet))){
-        ptrBullet->x = x;
-        ptrBullet->y = y;
-        ptrBullet->v.x = 2.0f*u.x;
-        ptrBullet->v.y = 2.0f*u.y;
-        ptrBullet->fDeleted = SDL_FALSE;
-
-        if (ptrCur = *listBullets){
-            // Find last element
-            while(ptrCur->next){
-                ptrCur = ptrCur->next;
-            }
-            ptrCur->next = ptrBullet;
-        }else{
-            *listBullets = ptrBullet;
-        }
-
-
-    }
-
-}
-
-void UpdateBulletPositions(Bullet *listBullets)
-/*-------------------------------------------------------------*\
-    Compute new positions for active bullets
-
-    Raymond NGUYEN THANH                        18-08-2025
-\*-------------------------------------------------------------*/
-{
-    float x,y;
-    Bullet *ptrBullet;
-    //----------------------------------------
-    if (ptrBullet=listBullets){
-        do{
-            if (ptrBullet->fDeleted==SDL_FALSE){
-                x = ptrBullet->x;
-                y = ptrBullet->y;
-                if ((x<0.0f)||(x>=WIN_WIDTH)){
-                    ptrBullet->fDeleted = SDL_TRUE;
-                }else if ((y<0.0f)||(y>=WIN_HEIGHT)){
-                    ptrBullet->fDeleted = SDL_TRUE;
-                }
-                if (ptrBullet->fDeleted==SDL_FALSE){
-                    ptrBullet->x += ptrBullet->v.x;
-                    ptrBullet->y += ptrBullet->v.y;
-                }
-            }
-            ptrBullet = ptrBullet->next;
-        }while(ptrBullet);
-    }
-}
-
-void DrawBullets(Bullet *listBullets, SDL_Renderer *renderer)
-{
-    float   x1,y1,x2,y2;
-    Bullet *ptrBullet;
-    SDL_Color red = {255, 0, 0, 255};
-    //----------------------------------------
-    if (ptrBullet=listBullets){
-        SDL_SetRenderDrawColor(renderer, red.r, red.g, red.b, red.a);
-        do{
-
-            if (ptrBullet->fDeleted==SDL_FALSE){
-                x1 = ptrBullet->x - 2.0f * ptrBullet->v.x;
-                y1 = ptrBullet->y - 2.0f * ptrBullet->v.y;
-                x2 = ptrBullet->x + 2.0f * ptrBullet->v.x;
-                y2 = ptrBullet->y + 2.0f * ptrBullet->v.y;
-                SDL_RenderDrawLineF( renderer, x1, y1, x2, y2);
-
-            }
-
-            ptrBullet = ptrBullet->next;
-
-        }while(ptrBullet);
-    }
-
-}
-
-void UpdateBulletsList(Bullet **listBullets)
-/*-------------------------------------------------------------*\
-    Remove deleted bullets from the list of bullets
-
-    Raymond NGUYEN THANH                        19-08-2025
-\*-------------------------------------------------------------*/
-{
-    Bullet *ptrBullet,*ptrNext=NULL;
-    Bullet *ptrNotDeleted = NULL;
-    //---------------------------------------
-    if (ptrBullet=(*listBullets)){
-
-        do{
-
-            ptrNext = ptrBullet->next;
-            if (ptrBullet->fDeleted==SDL_TRUE){
-                free(ptrBullet);
-
-            }else{
-                ptrBullet->next = NULL;
-                if (ptrNotDeleted==NULL){
-                    // Firts not deleted
-                    ptrNotDeleted = ptrBullet;
-                    *listBullets = ptrNotDeleted;
-
-                }else{
-
-                    // Append to not deleted list
-                    ptrNotDeleted->next = ptrBullet;
-                    ptrNotDeleted = ptrBullet;
-                }
-            }
-
-            ptrBullet = ptrNext;
-
-        }while(ptrBullet);
-
-        if (ptrNotDeleted==NULL){
-            // list is empty
-            *listBullets = NULL;
-        }
-
-
-    }
-}
 
 //-------------------------------------------------------------------
 //-------------------------------------------------------------------
-
-void AddNewRock(Rock **listRocks)
-/*-------------------------------------------------------------*\
-    Create new rock and append to the end of the list
-
-    Raymond NGUYEN THANH                        19-08-2025
-\*-------------------------------------------------------------*/
-{
-    float   a, da, r;
-    Rock    *ptrRock,*ptrCur;
-    //---------------------------------------
-    if (ptrRock=(Rock *) calloc(1,sizeof(Rock))){
-        
-        //--
-        ptrRock->x = rand() % WIN_WIDTH;
-        ptrRock->y = rand() % WIN_HEIGHT;
-        ptrRock->fDeleted = SDL_FALSE;
-        a = ((float) (rand() % 360))*PI/180.0f;
-        ptrRock->v.x = 0.3f * cos(a);
-        ptrRock->v.y = 0.3f * sin(a);
-
-        a = 0.0f;
-        ptrRock->nbVertices = 0;
-        ptrRock->rayMax = 0.0f;
-        ptrRock->rayMin = 1000.0;
-        for(int i=0;i<10;++i){
-            a += ((float) (rand() % 40 + 20))*PI/180.0f;
-            if (a>2*PI) break;
-            r = ((float) (rand() % 5)) + 10.0;
-            if (r < ptrRock->rayMin){
-                ptrRock->rayMin = r;
-            }
-            if (r > ptrRock->rayMax){
-                ptrRock->rayMax = r;
-            }
-            ptrRock->vertices[ptrRock->nbVertices].x = r * cos(a);
-            ptrRock->vertices[ptrRock->nbVertices].y = r * sin(a);
-            ptrRock->nbVertices++;
-        }
-
-        if (ptrCur=*listRocks){
-            // Find last element
-            while(ptrCur->next){
-                ptrCur = ptrCur->next;
-            }
-            ptrCur->next = ptrRock;
-        }else{
-            *listRocks = ptrRock;
-        }
-
-    }
-
-}
-
-void UpdateRockPositions(Rock *listRocks)
-/*-------------------------------------------------------------*\
-    Compute new positions for active rocks
-
-    Raymond NGUYEN THANH                        19-08-2025
-\*-------------------------------------------------------------*/
-{
-    float x,y;
-    Rock *ptrRock;
-    //----------------------------------------
-    if (ptrRock=listRocks){
-        do{
-            if (ptrRock->fDeleted==SDL_FALSE){
-                x = ptrRock->x;
-                y = ptrRock->y;
-
-                if (x<0.0f) {
-                    ptrRock->x = 1.0;
-                    ptrRock->v.x = fabs(ptrRock->v.x);
-                }else if (x>=WIN_WIDTH){
-                    ptrRock->x = WIN_WIDTH - 1;
-                    ptrRock->v.x = -fabs(ptrRock->v.x);
-                }
-
-                if (y<0.0f){
-                    ptrRock->y = 1.0;
-                    ptrRock->v.y = fabs(ptrRock->v.y);
-                }else if (y>=WIN_HEIGHT){
-                    ptrRock->y = WIN_HEIGHT - 1;
-                    ptrRock->v.y = -fabs(ptrRock->v.y);
-                }
-
-                ptrRock->x += ptrRock->v.x;
-                ptrRock->y += ptrRock->v.y;
-
-            }
-
-            ptrRock = ptrRock->next;
-
-        }while(ptrRock);
-    }
-}
-
-void DrawRocks( Rock *listRocks, SDL_Renderer *renderer)
-{
-    float x0,y0,x1,y1,x2,y2;
-    Rock *ptrRock;
-    SDL_Color light_grey = {200, 200, 200, 255};
-    //-------------------------------------------------
-    if (ptrRock=listRocks){
-
-        SDL_SetRenderDrawColor(renderer, light_grey.r, light_grey.g, light_grey.b, light_grey.a);
-
-        do{
-
-            if (ptrRock->fDeleted==SDL_FALSE){
-                int i=0;
-                x1 = ptrRock->x + ptrRock->vertices[i].x;
-                y1 = ptrRock->y + ptrRock->vertices[i].y;
-                x0 = x1;
-                y0 = y1;
-                i++;
-                while(i<10){
-                    x2 = ptrRock->x + ptrRock->vertices[i].x;
-                    y2 = ptrRock->y + ptrRock->vertices[i].y;
-                    SDL_RenderDrawLineF( renderer, x1, y1, x2, y2);
-                    x1 = x2;
-                    y1 = y2;
-                    i++;
-                }
-                SDL_RenderDrawLineF( renderer, x1, y1, x0, y0);
-            }
-            //
-            ptrRock = ptrRock->next;
-        
-        }while(ptrRock);
-
-    }
-
-}
-
-void UpdateRocksList(Rock **listRocks)
-/*-------------------------------------------------------------*\
-    Remove deleted rocks from the list of rocks
-
-    Raymond NGUYEN THANH                        20-08-2025
-\*-------------------------------------------------------------*/
-{
-    Rock *ptrFirst=NULL; // For the case of there no active Rock
-    Rock *ptrPrev=NULL;
-    Rock *ptrCur,*ptrNext;
-    //---------------------------------------------------------
-    if (ptrCur=*listRocks){
-        do{
-            ptrNext = ptrCur->next;
-            if (ptrCur->fDeleted==SDL_TRUE){
-                free(ptrCur);
-            }else{
-                ptrCur->next = NULL;
-                if (ptrPrev==NULL){    // No previous active rock
-                    ptrFirst = ptrCur; // Must be the head of the list 
-                    ptrPrev=ptrCur;
-                }else{
-                    ptrPrev->next = ptrCur;
-                    ptrPrev = ptrCur;
-                }
-            }
-            ptrCur = ptrNext;
-        }while(ptrCur);
-        *listRocks = ptrFirst;
-    }
-
-}
 
 Rock *CheckBulletHitRocks(Bullet *ptrBullet, Rock *listRocks)
 {
@@ -805,51 +375,6 @@ Rock *CheckBulletHitRocks(Bullet *ptrBullet, Rock *listRocks)
         }while(ptrRock);
     }
     return NULL;
-}
-
-void FreeRocks(Rock **listRocks)
-{
-    Rock *ptrCur,*ptrNext;
-    //--------------------------------------------------------
-    if (ptrCur=*listRocks){
-        while(ptrCur){
-            ptrNext = ptrCur->next;
-            free(ptrCur);
-            ptrCur = ptrNext;
-        }
-        *listRocks = NULL;
-    }
-
-}
-
-void FreeBullets(Bullet **listBullets)
-{
-    Bullet *ptrCur,*ptrNext;
-    //--------------------------------------------------------
-    if (ptrCur=*listBullets){
-        while(ptrCur){
-            ptrNext = ptrCur->next;
-            free(ptrCur);
-            ptrCur = ptrNext;
-        }
-        *listBullets = NULL;
-    }
-
-}
-
-void FreeExplosions(Explosion **listExplosions)
-{
-    Explosion *ptrCur,*ptrNext;
-    //--------------------------------------------------------
-    if (ptrCur=*listExplosions){
-        while(ptrCur){
-            ptrNext = ptrCur->next;
-            free(ptrCur);
-            ptrCur = ptrNext;
-        }
-        *listExplosions = NULL;
-    }
-
 }
 
 void Draw_Score(SDL_Renderer *renderer,int score){

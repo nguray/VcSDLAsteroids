@@ -1,9 +1,9 @@
 CC = gcc
 LDFLAGS = $(shell sdl2-config --libs | sed 's/ -I/ -isystem /g' ) -lm -lSDL2_mixer
-CFLAGS = $(shell sdl2-config --cflags | sed 's/ -I/ -isystem /g') -std=c11
+CFLAGS = $(shell sdl2-config --cflags | sed 's/ -I/ -isystem /g') -std=c2x
 
 PROGRAM = asteroids
-SRC := main.c 
+SRC := main.c explosion.c rock.c bullet.c
 
 .PHONY : debug release clean_debug clean_release gen_resources res obj
 OBJDIR = obj
@@ -17,6 +17,9 @@ all: debug release
 debug: CFLAGS += -g 
 debug: debug/$(PROGRAM)
 release: release/$(PROGRAM)
+
+$(OBJDIR)/%.o: %.c %.h
+	$(CC) $(CFLAGS) -o $@ -c $<
 
 $(OBJDIR)/%.o: %.c
 	$(CC) $(CFLAGS) -o $@ -c $<

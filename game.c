@@ -4,3 +4,4 @@
 int myLifes = 3;
 int myScore = 0;
 int iLevel = 0;
+Ship myShip;

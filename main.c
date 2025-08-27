@@ -11,6 +11,7 @@
 #include "bullet.h"
 #include "rock.h"
 #include "explosion.h"
+#include "ship.h"
 
 
 // gcc sdl01.c -o sdl01 $(sdl2-config --cflags --libs)
@@ -20,10 +21,6 @@
 //   sudo apt remove xserver-xorg-input-joystick
 //   sudo apt remove xserver-xorg-input-joystick-dev
 
-
-
-const SDL_Point ShipShape[] = {{0,15},{10,-10},{-10,-10}};
-const SDL_Point miniShipShape[] = {{0,-10},{7,7},{-7,7}};
 
 typedef struct Segment {
     SDL_Point start;
@@ -49,21 +46,37 @@ Symbol num9 = { 5, {{{0,0},{8,0}}, {{0,5},{8,5}}, {{0,0},{0,5}}, {{8,0},{8,12}},
 
 Symbol *nums[] = {&num0, &num1, &num2, &num3, &num4, &num5, &num6, &num7, &num8, &num9};
 
+Symbol charA = { 5, {{{0,12},{0,4}},{{0,4},{4,0}},{{4,0},{8,4}},{{8,4},{8,12}},{{0,7},{8,7}}}};
+Symbol charB = { 10, {{{0,0},{6,0}},{{6,0},{8,2}},{{8,2},{8,4}},{{8,4},{6,6}},{{6,6},{8,8}},
+                      {{8,8},{8,10}},{{8,10},{6,12}},{{6,12},{0,12}},{{0,6},{8,6}},{{0,0},{0,12}}}};
+Symbol charC = { 3, {{{0,0},{8,0}}, {{0,0},{0,12}}, {{0,12},{8,12}}} };
+Symbol charD = { 6, {{{0,0},{5,0}},{{5,0},{8,3}},{{8,3},{8,9}},{{8,9},{5,12}},{{5,12},{0,12}},{{0,12},{0,0}}} };
+Symbol charE = { 4, {{{0,0},{8,0}}, {{0,0},{0,12}}, {{0,12},{8,12}}, {{0,6},{5,6}}} };
+Symbol charF = { 3, {{{0,0},{8,0}}, {{0,0},{0,12}}, {{0,6},{5,6}}} };
+Symbol charG = { 5, {{{8,0},{0,0}},{{0,0},{0,12}},{{0,12},{8,12}},{{8,12},{8,7}},{{8,7},{5,7}}}};
+Symbol charH = { 3, {{{0,0},{0,12}},{{8,0},{8,12}},{{0,6},{8,6}}} };
+Symbol charI = { 3, {{{3,0},{5,0}},{{4,0},{4,12}},{{3,12},{5,12}}} };
+Symbol charJ = { 3, {{{8,0},{8,12}},{{8,12},{0,12}},{{0,12},{0,8}}} };
+Symbol charK = { 3, {{{0,0},{0,12}},{{0,6},{8,0}},{{0,6},{8,12}}} };
+Symbol charL = { 2, {{{0,0},{0,12}},{{0,12},{8,12}}} };
+Symbol charM = { 4, {{{0,12},{0,0}}, {{0,0},{4,4}}, {{4,4},{8,0}}, {{8,0},{8,12}}} };
+Symbol charN = { 3, {{{0,12},{0,0}}, {{0,0},{8,12}}, {{8,12},{8,0}}} };
+Symbol charO = { 8, {{{0,2},{2,0}},{{2,0},{6,0}},{{6,0},{8,2}},{{8,2},{8,10}},{{8,10},{6,12}},
+                      {{6,12},{2,12}},{{2,12},{0,10}},{{0,10},{0,2}}}};
+Symbol charP = { 4, {{{0,0},{8,0}}, {{8,0},{8,6}}, {{8,6},{0,6}}, {{0,0},{0,12}}} };
+Symbol charQ = { 9, {{{0,2},{2,0}},{{2,0},{6,0}},{{6,0},{8,2}},{{8,2},{8,10}},{{8,10},{6,12}},
+                      {{6,12},{2,12}},{{2,12},{0,10}},{{0,10},{0,2}},{{8,12},{5,9}}}};
+Symbol charR = { 5, {{{0,0},{8,0}},{{8,0},{8,6}},{{8,6},{0,6}},{{0,0},{0,12}},{{2,7},{8,12}}}};
+Symbol charS = { 9, {{{8,0},{2,0}},{{2,0},{0,2}},{{0,2},{0,4}},{{0,4},{2,6}},{{2,6},{6,6}},
+                      {{6,6},{8,8}},{{8,8},{8,10}},{{8,10},{6,12}},{{6,12},{0,12}}}};
+Symbol charT = { 2, {{{0,0},{8,0}},{{4,0},{4,12}}} };
+Symbol charU = { 3, {{{0,0},{0,12}},{{0,12},{8,12}},{{8,12},{8,0}}} };
+Symbol charV = { 2, {{{0,0},{4,12}},{{4,12},{8,0}}} };
+Symbol charW = { 4, {{{0,0},{0,12}}, {{0,12},{4,7}}, {{4,7},{8,12}}, {{8,12},{8,0}}} };
+Symbol charX = { 2, {{{0,0},{8,12}},{{8,0},{0,12}}} };
+Symbol charY = { 3, {{{0,0},{4,5}},{{4,5},{8,0}},{{4,5},{4,12}}} };
+Symbol charZ = { 3, {{{0,0},{8,0}},{{8,0},{0,12}},{{0,12},{8,12}}} };
 
-
-typedef struct Ship{
-
-    float x;
-    float y;
-    float angle;
-    int   iThrust;
-    int   iRotate;
-    SDL_FPoint u;
-    SDL_FPoint n;
-    SDL_FPoint v;
-    SDL_FPoint vertices[3];
-
-} Ship;
 
 
 //-------------------------------------------------------------------
@@ -87,270 +100,29 @@ void Symbol_Draw(Symbol *ptrSymbol,SDL_Renderer *renderer,float x,float y)
 
 }
 
-
-//-------------------------------------------------------------------
-//-------------------------------------------------------------------
-
-void Ship_Draw( Ship *ptrShip, SDL_Renderer *renderer)
+void DisplayGameOverMessage(SDL_Renderer *renderer)
 {
-    SDL_Point pts[5];
-    SDL_Color white = {220, 220, 220, 128};
-    SDL_Color orange = {255, 127, 40, 255};
-    float x0,y0,x1,y1,x2,y2,x3,y3,x4,y4;
-
-    // Draw space ship
-    SDL_SetRenderDrawColor(renderer, orange.r, orange.g, orange.b, orange.a);
-
-    x1 = ptrShip->x + ShipShape[0].y * ptrShip->u.x + ShipShape[0].x * ptrShip->n.x;
-    y1 = ptrShip->y + ShipShape[0].y * ptrShip->u.y + ShipShape[0].x * ptrShip->n.y;
-    SDL_RenderDrawLineF(renderer,ptrShip->x,ptrShip->y,x1,y1);
-
-
-    x2 = ptrShip->x + ShipShape[1].y * ptrShip->u.x + ShipShape[1].x * ptrShip->n.x;
-    y2 = ptrShip->y + ShipShape[1].y * ptrShip->u.y + ShipShape[1].x * ptrShip->n.y;
-    SDL_RenderDrawLineF(renderer,ptrShip->x,ptrShip->y,x2,y2);
-
-    x3 = ptrShip->x + ShipShape[2].y * ptrShip->u.x + ShipShape[2].x * ptrShip->n.x;
-    y3 = ptrShip->y + ShipShape[2].y * ptrShip->u.y + ShipShape[2].x * ptrShip->n.y;
-    SDL_RenderDrawLineF(renderer,ptrShip->x,ptrShip->y,x3,y3);
-
-    pts[0].x = x1;
-    pts[0].y = y1;
-    pts[1].x = x2;
-    pts[1].y = y2;
-    pts[2].x = x3;
-    pts[2].y = y3;
-    pts[3].x = x1;
-    pts[3].y = y1;
-    SDL_RenderDrawLines(renderer, pts, 4);
-
-    //-- Store vertices for collision checking
-    ptrShip->vertices[0] = (SDL_FPoint) {x1,y1};
-    ptrShip->vertices[1] = (SDL_FPoint) {x2,y2};
-    ptrShip->vertices[2] = (SDL_FPoint) {x3,y3};
-
-    //-- Draw remain life
-    x0 = WIN_WIDTH - 100.0f;
-    y0 = 14.0;
-    for (int i=0; i<myLifes; ++i){
-
-        x1 = x0 + miniShipShape[0].x;
-        y1 = y0 + miniShipShape[0].y;
-        SDL_RenderDrawLineF(renderer, x0, y0, x1, y1);
-
-
-        x2 = x0 + miniShipShape[1].x;
-        y2 = y0 + miniShipShape[1].y;
-        SDL_RenderDrawLineF(renderer, x0, y0, x2, y2);
-
-        x3 = x0 + miniShipShape[2].x;
-        y3 = y0 + miniShipShape[2].y;
-        SDL_RenderDrawLineF(renderer, x0, y0, x3, y3);
-
-        pts[0].x = x1;
-        pts[0].y = y1;
-        pts[1].x = x2;
-        pts[1].y = y2;
-        pts[2].x = x3;
-        pts[2].y = y3;
-        pts[3].x = x1;
-        pts[3].y = y1;
-        SDL_RenderDrawLines(renderer, pts, 4);
-
-        x0 += 20.0;
-    }
-
-    void Draw_ExhaustGas(SDL_Renderer *renderer, float x1, float y1, float x2, float y2)
-    {
-        SDL_Point pts[5];
-        SDL_Color white = {220, 220, 220, 128};
-        //---------------------------------------------------------------
-        float vx = x2-x1;
-        float vy = y2-y1; 
-        float norm = sqrt(vx*vx+vy*vy);
-        SDL_FPoint u = {vx/norm,vy/norm};
-        SDL_FPoint n = {-u.y,u.x};
-        pts[0].x = x1 + u.x;
-        pts[0].y = y1 + u.y;
-        pts[1].x = x1 + 1.5*n.x + 1.5*u.x;
-        pts[1].y = y1 + 1.5*n.y + 1.5*u.y;
-        pts[2].x = x2;
-        pts[2].y = y2;
-        pts[3].x = x1 - 1.5*n.x + 1.5*u.x;
-        pts[3].y = y1 - 1.5*n.y + 1.5*u.y;
-        pts[4] = pts[0];
-        SDL_RenderDrawLines(renderer, pts, 5);
-
-    }
-
-    if (ptrShip->iThrust==1){
-        // Draw Exhaust gas during accelerationinner
-        SDL_SetRenderDrawColor(renderer, white.r, white.g, white.b, white.a);
-        
-        //_Draw right acceleratio exhaust gas
-        x1 = ptrShip->x + ShipShape[1].y * ptrShip->u.x + ShipShape[1].x * ptrShip->n.x - 4.0*ptrShip->n.x;
-        y1 = ptrShip->y + ShipShape[1].y * ptrShip->u.y + ShipShape[1].x * ptrShip->n.y - 4.0*ptrShip->n.y;
-        x2 = ptrShip->x + ShipShape[1].y * ptrShip->u.x + ShipShape[1].x * ptrShip->n.x - 4.0*ptrShip->n.x - 10.0*ptrShip->u.x;
-        y2 = ptrShip->y + ShipShape[1].y * ptrShip->u.y + ShipShape[1].x * ptrShip->n.y - 4.0*ptrShip->n.y - 10.0*ptrShip->u.y;
-        Draw_ExhaustGas( renderer, x1, y1, x2, y2);
-
-        //_Draw left acceleratio exhaust gas
-        x1 = ptrShip->x + ShipShape[2].y * ptrShip->u.x + ShipShape[2].x * ptrShip->n.x + 4.0*ptrShip->n.x;
-        y1 = ptrShip->y + ShipShape[2].y * ptrShip->u.y + ShipShape[2].x * ptrShip->n.y + 4.0*ptrShip->n.y;
-        x2 = ptrShip->x + ShipShape[2].y * ptrShip->u.x + ShipShape[2].x * ptrShip->n.x + 4.0*ptrShip->n.x - 10.0*ptrShip->u.x;
-        y2 = ptrShip->y + ShipShape[2].y * ptrShip->u.y + ShipShape[2].x * ptrShip->n.y + 4.0*ptrShip->n.y - 10.0*ptrShip->u.y;
-        Draw_ExhaustGas( renderer, x1, y1, x2, y2);
-
-    }else if (ptrShip->iThrust==-1){
-        // Draw Exhaust gas during deceleration
-        SDL_SetRenderDrawColor(renderer, white.r, white.g, white.b, white.a);
-
-        // Draw right deceleratio exhaust gas
-        x1 = ptrShip->x - 6.0*ptrShip->n.x;
-        y1 = ptrShip->y - 6.0*ptrShip->n.y;
-        x2 = ptrShip->x - 8.0*ptrShip->n.x + 10.0*ptrShip->u.x;
-        y2 = ptrShip->y - 8.0*ptrShip->n.y + 10.0*ptrShip->u.y;
-        Draw_ExhaustGas( renderer, x1, y1, x2, y2);
-
-        // Draw left deceleratio exhaust gas
-        x1 = ptrShip->x + 6.0*ptrShip->n.x;
-        y1 = ptrShip->y + 6.0*ptrShip->n.y;
-        x2 = ptrShip->x + 8.0*ptrShip->n.x + 10.0*ptrShip->u.x;
-        y2 = ptrShip->y + 8.0*ptrShip->n.y + 10.0*ptrShip->u.y;
-        Draw_ExhaustGas( renderer, x1, y1, x2, y2);
-
-    }
-
-    if (ptrShip->iRotate>0){
-        SDL_SetRenderDrawColor(renderer, white.r, white.g, white.b, white.a);
-
-        // Draw left decceleration exhaust gas
-        x1 = ptrShip->x - 6.0*ptrShip->n.x;
-        y1 = ptrShip->y - 6.0*ptrShip->n.y;
-        x2 = ptrShip->x - 8.0*ptrShip->n.x + 8.0*ptrShip->u.x;
-        y2 = ptrShip->y - 8.0*ptrShip->n.y + 8.0*ptrShip->u.y;
-        Draw_ExhaustGas( renderer, x1, y1, x2, y2);
-
-        //_Draw right acceleratio exhaust gas
-        x1 = ptrShip->x + ShipShape[1].y * ptrShip->u.x + ShipShape[1].x * ptrShip->n.x - 4.0*ptrShip->n.x;
-        y1 = ptrShip->y + ShipShape[1].y * ptrShip->u.y + ShipShape[1].x * ptrShip->n.y - 4.0*ptrShip->n.y;
-        x2 = ptrShip->x + ShipShape[1].y * ptrShip->u.x + ShipShape[1].x * ptrShip->n.x - 4.0*ptrShip->n.x - 8.0*ptrShip->u.x;
-        y2 = ptrShip->y + ShipShape[1].y * ptrShip->u.y + ShipShape[1].x * ptrShip->n.y - 4.0*ptrShip->n.y - 8.0*ptrShip->u.y;
-        Draw_ExhaustGas( renderer, x1, y1, x2, y2);
-
-    }else if (ptrShip->iRotate<0){
-        SDL_SetRenderDrawColor(renderer, white.r, white.g, white.b, white.a);
-
-        // Draw right decceleration exhaust gas
-        x1 = ptrShip->x + 6.0*ptrShip->n.x;
-        y1 = ptrShip->y + 6.0*ptrShip->n.y;
-        x2 = ptrShip->x + 8.0*ptrShip->n.x + 8.0*ptrShip->u.x;
-        y2 = ptrShip->y + 8.0*ptrShip->n.y + 8.0*ptrShip->u.y;
-        Draw_ExhaustGas( renderer, x1, y1, x2, y2);
-
-        //_Draw left acceleratio exhaust gas
-        x1 = ptrShip->x + ShipShape[2].y * ptrShip->u.x + ShipShape[2].x * ptrShip->n.x + 4.0*ptrShip->n.x;
-        y1 = ptrShip->y + ShipShape[2].y * ptrShip->u.y + ShipShape[2].x * ptrShip->n.y + 4.0*ptrShip->n.y;
-        x2 = ptrShip->x + ShipShape[2].y * ptrShip->u.x + ShipShape[2].x * ptrShip->n.x + 4.0*ptrShip->n.x - 8.0*ptrShip->u.x;
-        y2 = ptrShip->y + ShipShape[2].y * ptrShip->u.y + ShipShape[2].x * ptrShip->n.y + 4.0*ptrShip->n.y - 8.0*ptrShip->u.y;
-        Draw_ExhaustGas( renderer, x1, y1, x2, y2);
-
-    }
-}
-
-void Ship_SetAngle( Ship *ptrShip, float a)
-{
-    //--------------------------------------
-    ptrShip->angle = a;
-
-    ptrShip->u.x = cos(a*M_PI/180.0);
-    ptrShip->u.y = sin(a*M_PI/180.0);
-
-    ptrShip->n.x = -ptrShip->u.y;
-    ptrShip->n.y = ptrShip->u.x;
+    //--------------------------------------------------------------
+    float x = WIN_WIDTH/2 - 4.5*14.0;
+    float y = WIN_HEIGHT/2 - 10.0;
+    Symbol_Draw( &charG, renderer, x, y);
+    x += 14.0;
+    Symbol_Draw( &charA, renderer, x, y);
+    x += 14.0;
+    Symbol_Draw( &charM, renderer, x, y);
+    x += 14.0;
+    Symbol_Draw( &charE, renderer, x, y);
+    x += 14.0;
+    x += 14.0;
+    Symbol_Draw( &charO, renderer, x, y);
+    x += 14.0;
+    Symbol_Draw( &charV, renderer, x, y);
+    x += 14.0;
+    Symbol_Draw( &charE, renderer, x, y);
+    x += 14.0;
+    Symbol_Draw( &charR, renderer, x, y);
 
 }
-
-void Ship_SetLocation(Ship *ptrShip, int x, int y)
-{
-    //--------------------------------------
-    ptrShip->x = x;
-    ptrShip->y = y;
-
-}
-
-void Ship_SetVelocity(Ship *ptrShip, float vx, float vy)
-{
-    //--------------------------------------
-    ptrShip->v.x = vx;
-    ptrShip->v.y = vy;
-
-}
-
-void Ship_UpdatePosition(Ship *ptrShip)
-{
-    //--------------------------------------
-    float x = ptrShip->x + ptrShip->v.x;
-    float y = ptrShip->y + ptrShip->v.y;
-
-    if (x<0.0f){
-        ptrShip->v.x = -ptrShip->v.x;
-        x = ptrShip->v.x;
-    }else if (x>=WIN_WIDTH){
-        ptrShip->v.x = -ptrShip->v.x;
-        x = WIN_WIDTH -1.0f - ptrShip->v.x;
-    }
-
-    if (y<0.0f){
-        ptrShip->v.y = -ptrShip->v.y;
-        y = ptrShip->v.y;
-    }else if (y>=WIN_HEIGHT){
-        ptrShip->v.y = -ptrShip->v.y;
-        y = WIN_HEIGHT - 1.0f - ptrShip->v.y;
-    }
-
-    ptrShip->x = x;
-    ptrShip->y = y;
-
-    //printf("x=%f y=%f\n",ptrShip->x,ptrShip->y);
-
-}
-
-void Ship_Accelerate(Ship *ptrShip, float pac)
-{
-    //
-    float vx = pac * ptrShip->u.x;
-    float vy = pac * ptrShip->u.y;
-
-    ptrShip->v.x += vx;
-    ptrShip->v.y += vy;
-
-
-}
-
-void Ship_Decelerate(Ship *ptrShip, float pac)
-{
-    //
-    float vx = pac * ptrShip->u.x;
-    float vy = pac * ptrShip->u.y;
-
-    ptrShip->v.x -= vx;
-    ptrShip->v.y -= vy;
-
-}
-
-void Ship_SetThrust(Ship *ptrShip, int iThrust)
-{
-    //
-    ptrShip->iThrust = iThrust;
-}
-
-void Ship_SetRotate(Ship *ptrShip, int iRotate)
-{
-    //
-    ptrShip->iRotate = iRotate;
-}
-
 
 //-------------------------------------------------------------------
 //-------------------------------------------------------------------
@@ -400,7 +172,11 @@ void NewLevel( Rock **listRocks,int iLevel)
         AddNewRock(listRocks);
 
     }
+    Ship_SetLocation( &myShip, 320, 240);
+    Ship_SetVelocity(&myShip, 0.0, 0.0);
+
 }
+
 
 int main(int argc, char *argv[])
 {
@@ -411,9 +187,6 @@ int main(int argc, char *argv[])
 
     SDL_Color orange = {255, 127, 40, 255};
     SDL_Color dark_blue = {10, 10, 150, 255};
-
-
-    Ship myShip;
 
     Bullet  *listBullets = NULL;
     Rock    *listRocks = NULL;
@@ -426,13 +199,6 @@ int main(int argc, char *argv[])
     Ship_SetLocation( &myShip, 320, 240);
 
     Ship_SetAngle( &myShip, -90.0f);
-
-
-    float ra = myShip.angle*M_PI/180.0;
-    Ship_SetVelocity(&myShip, 0.2f*cos(ra), 0.2f*sin(ra));
-
-
-    printf("nbVertices=%d\n",sizeof(ShipShape)/sizeof(SDL_Point));
 
     srand(time(NULL));   // Initialization, should only be called once.
 
@@ -681,6 +447,13 @@ int main(int argc, char *argv[])
                         d = sqrt(vx*vx+vy*vy);
                         if (d<ptrRock->rayMax){
                             fLost = SDL_TRUE;
+                            ptrRock->fDeleted = SDL_TRUE;
+                            AddNewExplosion(&listExplosions,ptrRock->x,ptrRock->y, ptrRock->v.x, ptrRock->v.y);
+                            AddNewExplosion(&listExplosions,myShip.x, myShip.y, myShip.v.x, myShip.v.y);
+                            Ship_SetLocation( &myShip, WIN_WIDTH/2, WIN_HEIGHT/2);
+                            Ship_SetVelocity( &myShip, 0.0, 0.0);
+                            Mix_PlayChannel( -1, explosionSound, 0 );                
+                            //fPause = SDL_TRUE;
                             break;
                         }
                     }
@@ -691,11 +464,12 @@ int main(int argc, char *argv[])
             if (fLost){
                 myLifes--;
                 if (myLifes==0){
-                    fPause = SDL_TRUE;
-                }else{
-                    myShip.x = WIN_WIDTH/2;
-                    myShip.y = WIN_HEIGHT/2;
-                    myShip.v = (SDL_FPoint) {0.0,0.0};
+                    //fPause = SDL_TRUE;
+                    myShip.fHide = SDL_TRUE;
+                // }else{
+                //     myShip.x = WIN_WIDTH/2;
+                //     myShip.y = WIN_HEIGHT/2;
+                //     myShip.v = (SDL_FPoint) {0.0,0.0};
                 }
             }
 
@@ -739,6 +513,35 @@ int main(int argc, char *argv[])
 
 
         Draw_Score(renderer, myScore);
+
+        // Symbol_Draw(&charA,renderer, 50.0, 100.0);
+        // Symbol_Draw(&charB,renderer, 50.0+20.0, 100.0);
+        // Symbol_Draw(&charC,renderer, 50.0+2*20.0, 100.0);
+        // Symbol_Draw(&charD,renderer, 50.0+3*20.0, 100.0);
+        // Symbol_Draw(&charE,renderer, 50.0+4*20.0, 100.0);
+        // Symbol_Draw(&charF,renderer, 50.0+5*20.0, 100.0);
+        // Symbol_Draw(&charG,renderer, 50.0+6*20.0, 100.0);
+        // Symbol_Draw(&charH,renderer, 50.0+7*20.0, 100.0);
+        // Symbol_Draw(&charI,renderer, 50.0+8*20.0, 100.0);
+        // Symbol_Draw(&charJ,renderer, 50.0+9*20.0, 100.0);
+        // Symbol_Draw(&charK,renderer, 50.0+10*20.0, 100.0);
+        // Symbol_Draw(&charL,renderer, 50.0+11*20.0, 100.0);
+        // Symbol_Draw(&charM,renderer, 50.0+12*20.0, 100.0);
+        // Symbol_Draw(&charN,renderer, 50.0+13*20.0, 100.0);
+        // Symbol_Draw(&charO,renderer, 50.0+14*20.0, 100.0);
+        // Symbol_Draw(&charP,renderer, 50.0+15*20.0, 100.0);
+        // Symbol_Draw(&charQ,renderer, 50.0+16*20.0, 100.0);
+        // Symbol_Draw(&charR,renderer, 50.0+17*20.0, 100.0);
+        // Symbol_Draw(&charS,renderer, 50.0+18*20.0, 100.0);
+        // Symbol_Draw(&charT,renderer, 50.0+19*20.0, 100.0);
+        // Symbol_Draw(&charU,renderer, 50.0+20*20.0, 100.0);
+        // Symbol_Draw(&charV,renderer, 50.0+21*20.0, 100.0);
+        // Symbol_Draw(&charW,renderer, 50.0+22*20.0, 100.0);
+        // Symbol_Draw(&charX,renderer, 50.0+23*20.0, 100.0);
+        // Symbol_Draw(&charY,renderer, 50.0+24*20.0, 100.0);
+        // Symbol_Draw(&charZ,renderer, 50.0+25*20.0, 100.0);
+
+        DisplayGameOverMessage(renderer);
 
         //
         SDL_RenderPresent(renderer);

@@ -1,5 +1,7 @@
 #pragma once
 
+#include "ship.h"
+
 #ifndef  M_PI
 #define  M_PI  3.1415926535897932384626433
 #endif
@@ -9,3 +11,4 @@
 extern int myLifes;
 extern int myScore;
 extern int iLevel;
+extern Ship myShip;

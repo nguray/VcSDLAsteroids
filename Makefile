@@ -3,7 +3,7 @@ LDFLAGS = $(shell sdl2-config --libs | sed 's/ -I/ -isystem /g' ) -lm -lSDL2_mix
 CFLAGS = $(shell sdl2-config --cflags | sed 's/ -I/ -isystem /g') -std=c2x
 
 PROGRAM = asteroids
-SRC := game.c main.c explosion.c rock.c bullet.c
+SRC := game.c main.c explosion.c rock.c bullet.c ship.c
 
 .PHONY : debug release clean_debug clean_release gen_resources res obj
 OBJDIR = obj

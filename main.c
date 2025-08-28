@@ -164,9 +164,9 @@ void Draw_Score(SDL_Renderer *renderer,int score){
     }
 }
 
-void NewLevel( Rock **listRocks,int iLevel)
+void NewLevel( Rock **listRocks, Game *game)
 {
-    int nbRocks = iLevel * 4 + 7;
+    int nbRocks = game->iLevel * 4 + 7;
     //-----------------------------------------------------
     for(int i = 0; i<nbRocks;++i){
         AddNewRock(listRocks);
@@ -174,9 +174,144 @@ void NewLevel( Rock **listRocks,int iLevel)
     }
     Ship_SetLocation( &myShip, 320, 240);
     Ship_SetVelocity(&myShip, 0.0, 0.0);
+    game->nbLifes = 3;
+    game->fPause = SDL_FALSE;
 
 }
 
+int IdleModeProcessEvent(SDL_Event event, SDL_Joystick *joystick,Game *game,Ship *ship)
+{
+    //-----------------------------------------------------
+
+}
+
+int PlayModeProcessEvent(SDL_Event event, SDL_Joystick *joystick,Game *game,Ship *ship)
+{
+    //-----------------------------------------------------
+    // Read gamepad
+    if (joystick){
+
+        if (event.type == SDL_JOYAXISMOTION){
+            printf("Joystick event axis whick %d\n",event.jaxis.which); // Joystick number
+            printf("Joystick event axis  %d --> %d\n",event.jaxis.axis,event.jaxis.value); // axis number
+            if (event.jaxis.axis==4){
+                if (event.jaxis.value>100){
+                    Ship_SetRotate(&myShip, 1);
+                }else if (event.jaxis.value<-100){
+                    Ship_SetRotate(&myShip, -1);
+                }else{
+                    Ship_SetRotate(&myShip, 0);
+                }
+            }
+            if (event.jaxis.axis==1){
+                if (event.jaxis.value>100){
+                    Ship_SetThrust(&myShip, -1);
+                }else if (event.jaxis.value<-100){
+                    Ship_SetThrust(&myShip, 1);
+                }else{
+                    Ship_SetThrust(&myShip, 0);
+                }
+            }
+
+        }else if (event.type == SDL_JOYBUTTONDOWN){
+            printf("Joystick event button down %d\n",event.jbutton.button);
+            if (event.jbutton.button==5){
+                myShip.iTrigger = 1;
+            }
+
+        }else if (event.type == SDL_JOYBUTTONUP){
+            printf("Joystick event button up %d\n",event.jbutton.button);
+            if (event.jbutton.button==5){
+                myShip.iTrigger = 0;
+            }
+
+        }else if (event.type == SDL_JOYHATMOTION){
+            printf("Joystick event hat \n");
+            if ( event.jhat.value & SDL_HAT_UP )
+            {
+                /* Do up stuff here */
+                printf("HAT UP\n");
+            }
+            if ( event.jhat.value & SDL_HAT_DOWN )
+            {
+                /* Do up stuff here */
+                printf("HAT DOWN\n");
+            }
+            if ( event.jhat.value & SDL_HAT_LEFT )
+            {
+                /* Do left stuff here */
+                printf("HAT LEFT\n");
+            }
+            if ( event.jhat.value & SDL_HAT_RIGHT )
+            {
+                /* Do left stuff here */
+                printf("HAT RIGHT\n");
+            }
+
+            if ( event.jhat.value & SDL_HAT_RIGHTDOWN )
+            {
+                /* Do right and down together stuff here */
+                printf("HAT RIGHTDOWN\n");
+            }
+        }
+    }
+
+    if(event.type == SDL_QUIT){
+        return SDL_TRUE;
+
+    }else if ((event.type == SDL_KEYDOWN) && (!event.key.repeat)){
+        //printf("Keydown\n");
+        if(event.key.keysym.sym == SDLK_ESCAPE){
+            return SDL_TRUE;
+            //printf("Escape Key\n");
+        }else if(event.key.keysym.sym == SDLK_LEFT){
+            Ship_SetRotate(&myShip,1);
+        }else if(event.key.keysym.sym == SDLK_RIGHT){
+            Ship_SetRotate(&myShip,-1);
+        }else if(event.key.keysym.sym == SDLK_UP){
+            Ship_SetThrust(&myShip, 1);
+        }else if(event.key.keysym.sym == SDLK_DOWN){
+            Ship_SetThrust(&myShip, -1);
+        }else if(event.key.keysym.sym == SDLK_SPACE){
+            //SDL_CaptureMouse(SDL_TRUE);
+            myShip.iTrigger = 1;
+            myGame.lastBulletTicks = SDL_GetTicks();
+            //AddNewBullet( &myGame.listBullets, myShip.x, myShip.y, myShip.u);
+            //Mix_PlayChannel( -1, laserSound, 0 );
+        }else if(event.key.keysym.sym == SDLK_p){
+            game->fPause ^= SDL_TRUE;
+        }
+    }else if ((event.type == SDL_KEYUP)){
+        //printf("KeyUp\n");
+        if (event.key.keysym.sym == SDLK_LEFT){
+            Ship_SetRotate(&myShip, 0);
+        }else if(event.key.keysym.sym == SDLK_RIGHT){
+            Ship_SetRotate(&myShip, 0);
+        }else if(event.key.keysym.sym == SDLK_UP){
+            Ship_SetThrust(&myShip, 0);
+        }else if(event.key.keysym.sym == SDLK_DOWN){
+            Ship_SetThrust(&myShip, 0);
+        }else if(event.key.keysym.sym == SDLK_SPACE){
+            myShip.iTrigger = 0;
+        }
+    }
+    return SDL_FALSE;
+}
+
+int GameOverModeProcessEvent(SDL_Event event, SDL_Joystick *joystick,Game *game,Ship *ship)
+{
+    //-----------------------------------------------------
+
+}
+
+int HighScoresModeProcessEvent(SDL_Event event, SDL_Joystick *joystick,Game *game,Ship *ship)
+{
+    //-----------------------------------------------------
+
+}
+
+
+int (*ProcessEvent) (SDL_Event event, SDL_Joystick *joystick, struct Game *game,Ship *ship);
 
 int main(int argc, char *argv[])
 {
@@ -188,12 +323,10 @@ int main(int argc, char *argv[])
     SDL_Color orange = {255, 127, 40, 255};
     SDL_Color dark_blue = {10, 10, 150, 255};
 
-    Bullet  *listBullets = NULL;
     Rock    *listRocks = NULL;
     Explosion *listExplosions = NULL;
 
-    int iTrigger = 0;
-
+    myShip.iTrigger = 0;
     Ship_SetThrust(&myShip, 0);
     Ship_SetRotate(&myShip, 0);
     Ship_SetLocation( &myShip, 320, 240);
@@ -202,7 +335,9 @@ int main(int argc, char *argv[])
 
     srand(time(NULL));   // Initialization, should only be called once.
 
-    NewLevel( &listRocks, iLevel);
+    myGame.score = 0;
+    myGame.listBullets = NULL;
+    NewLevel( &listRocks, &myGame);
 
     if(0 != SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_JOYSTICK))
     {
@@ -249,131 +384,23 @@ int main(int argc, char *argv[])
     }
 
 
-    SDL_bool fPause = SDL_FALSE;
 
     Uint32 curTicks = SDL_GetTicks();
     Uint32 lastBulletTicks = curTicks;
     Uint32 lastUpdateExplosionTicks = curTicks;
 
+    ProcessEvent = &PlayModeProcessEvent;
+
     SDL_Event event;
     while(!quit)
     {
         while(SDL_PollEvent(&event)){
-
-            // Read gamepad
-            if (joystick){
-
-                if (event.type == SDL_JOYAXISMOTION){
-                    printf("Joystick event axis whick %d\n",event.jaxis.which); // Joystick number
-                    printf("Joystick event axis  %d --> %d\n",event.jaxis.axis,event.jaxis.value); // axis number
-                    if (event.jaxis.axis==4){
-                        if (event.jaxis.value>100){
-                            Ship_SetRotate(&myShip, 1);
-                        }else if (event.jaxis.value<-100){
-                            Ship_SetRotate(&myShip, -1);
-                        }else{
-                            Ship_SetRotate(&myShip, 0);
-                        }
-                    }
-                    if (event.jaxis.axis==1){
-                        if (event.jaxis.value>100){
-                            Ship_SetThrust(&myShip, -1);
-                        }else if (event.jaxis.value<-100){
-                            Ship_SetThrust(&myShip, 1);
-                        }else{
-                            Ship_SetThrust(&myShip, 0);
-                        }
-                    }
-
-                }else if (event.type == SDL_JOYBUTTONDOWN){
-                    printf("Joystick event button down %d\n",event.jbutton.button);
-                    if (event.jbutton.button==5){
-                        iTrigger = 1;
-                    }
-
-                }else if (event.type == SDL_JOYBUTTONUP){
-                    printf("Joystick event button up %d\n",event.jbutton.button);
-                    if (event.jbutton.button==5){
-                        iTrigger = 0;
-                    }
-
-                }else if (event.type == SDL_JOYHATMOTION){
-                    printf("Joystick event hat \n");
-                    if ( event.jhat.value & SDL_HAT_UP )
-                    {
-                        /* Do up stuff here */
-                        printf("HAT UP\n");
-                    }
-                    if ( event.jhat.value & SDL_HAT_DOWN )
-                    {
-                        /* Do up stuff here */
-                        printf("HAT DOWN\n");
-                    }
-                    if ( event.jhat.value & SDL_HAT_LEFT )
-                    {
-                        /* Do left stuff here */
-                        printf("HAT LEFT\n");
-                    }
-                    if ( event.jhat.value & SDL_HAT_RIGHT )
-                    {
-                        /* Do left stuff here */
-                        printf("HAT RIGHT\n");
-                    }
-
-                    if ( event.jhat.value & SDL_HAT_RIGHTDOWN )
-                    {
-                        /* Do right and down together stuff here */
-                        printf("HAT RIGHTDOWN\n");
-                    }
-                }
-            }
-
-            if(event.type == SDL_QUIT){
-                quit = SDL_TRUE;
-
-            }else if ((event.type == SDL_KEYDOWN) && (!event.key.repeat)){
-                //printf("Keydown\n");
-                if(event.key.keysym.sym == SDLK_ESCAPE){
-                    quit = SDL_TRUE;
-                    //printf("Escape Key\n");
-                }else if(event.key.keysym.sym == SDLK_LEFT){
-                    Ship_SetRotate(&myShip,1);
-                }else if(event.key.keysym.sym == SDLK_RIGHT){
-                    Ship_SetRotate(&myShip,-1);
-                }else if(event.key.keysym.sym == SDLK_UP){
-                    Ship_SetThrust(&myShip, 1);
-                }else if(event.key.keysym.sym == SDLK_DOWN){
-                    Ship_SetThrust(&myShip, -1);
-                }else if(event.key.keysym.sym == SDLK_SPACE){
-                    //SDL_CaptureMouse(SDL_TRUE);
-                    iTrigger = 1;
-                    lastBulletTicks = SDL_GetTicks();
-                    AddNewBullet( &listBullets, myShip.x, myShip.y, myShip.u);
-                    Mix_PlayChannel( -1, laserSound, 0 );
-                }else if(event.key.keysym.sym == SDLK_p){
-                    fPause ^= SDL_TRUE;
-                }else if(event.key.keysym.sym == SDLK_e){
-                    AddNewExplosion(&listExplosions,100.0f,100.0f,1.0f,1.0f);
-                    AddNewExplosion(&listExplosions,150.0f,100.0f,1.0f,1.0f);
-                    AddNewExplosion(&listExplosions,200.0f,100.0f,1.0f,1.0f);
-                }
-            }else if ((event.type == SDL_KEYUP)){
-                //printf("KeyUp\n");
-                if (event.key.keysym.sym == SDLK_LEFT){
-                    Ship_SetRotate(&myShip, 0);
-                }else if(event.key.keysym.sym == SDLK_RIGHT){
-                    Ship_SetRotate(&myShip, 0);
-                }else if(event.key.keysym.sym == SDLK_UP){
-                    Ship_SetThrust(&myShip, 0);
-                }else if(event.key.keysym.sym == SDLK_DOWN){
-                    Ship_SetThrust(&myShip, 0);
-                }else if(event.key.keysym.sym == SDLK_SPACE){
-                    iTrigger = 0;
-                }
-            }
+            quit = ProcessEvent(event, joystick, &myGame, &myShip);
         }
 
-        if (fPause==SDL_FALSE){
+        if (myGame.fPause==SDL_FALSE){
+
+            // Update Game states
 
             if (myShip.iRotate==1){
                 Ship_SetAngle(&myShip, myShip.angle - 1.0f);
@@ -388,22 +415,21 @@ int main(int argc, char *argv[])
                 Ship_Decelerate(&myShip, 0.015f);
             }
 
-            if (iTrigger){
+            if (myShip.iTrigger){
                 Uint32 curTicks = SDL_GetTicks();
                 if ((curTicks-lastBulletTicks)>200){
                     lastBulletTicks = curTicks;
-                    AddNewBullet( &listBullets, myShip.x, myShip.y, myShip.u);
+                    AddNewBullet( &myGame.listBullets, myShip.x, myShip.y, myShip.u);
                     Mix_PlayChannel( -1, laserSound, 0 );
                 }
             }
 
-            // Update Game states
             Ship_UpdatePosition(&myShip);
 
             UpdateRockPositions(listRocks);
-            UpdateBulletPositions(listBullets);
+            UpdateBulletPositions(myGame.listBullets);
 
-            UpdateBulletsList(&listBullets);
+            UpdateBulletsList(&myGame.listBullets);
 
             curTicks = SDL_GetTicks();
             if ((curTicks-lastUpdateExplosionTicks)>80){
@@ -412,16 +438,15 @@ int main(int argc, char *argv[])
                 UpdateExplosionssList(&listExplosions);
             }
 
-
             Bullet *ptrBullet;
-            if (ptrBullet=listBullets){
+            if (ptrBullet=myGame.listBullets){
                 Rock *ptrRock;
                 do{
                     //
                     if (ptrRock=CheckBulletHitRocks(ptrBullet, listRocks)){
                         AddNewExplosion(&listExplosions,ptrRock->x,ptrRock->y, ptrRock->v.x, ptrRock->v.y);
                         Mix_PlayChannel( -1, explosionSound, 0 );
-                        myScore += 30;
+                        myGame.score += 30;
                         
                     }
                     //
@@ -431,8 +456,8 @@ int main(int argc, char *argv[])
 
             UpdateRocksList(&listRocks);
             if (listRocks==NULL){
-                iLevel++;
-                NewLevel(&listRocks, iLevel);
+                myGame.iLevel++;
+                NewLevel(&listRocks, &myGame);
             }
 
             //-- Check Ship <-> Rock collision
@@ -462,8 +487,8 @@ int main(int argc, char *argv[])
             }
 
             if (fLost){
-                myLifes--;
-                if (myLifes==0){
+                myGame.nbLifes--;
+                if (myGame.nbLifes==0){
                     //fPause = SDL_TRUE;
                     myShip.fHide = SDL_TRUE;
                 // }else{
@@ -507,12 +532,11 @@ int main(int argc, char *argv[])
         //
         Ship_Draw( &myShip, renderer);
 
-        DrawBullets( listBullets, renderer);
+        DrawBullets( myGame.listBullets, renderer);
         DrawRocks(listRocks, renderer);
         DrawExplosions(listExplosions, renderer);
 
-
-        Draw_Score(renderer, myScore);
+        Draw_Score(renderer, myGame.score);
 
         // Symbol_Draw(&charA,renderer, 50.0, 100.0);
         // Symbol_Draw(&charB,renderer, 50.0+20.0, 100.0);
@@ -552,7 +576,7 @@ int main(int argc, char *argv[])
     }
 
     // Free Game Objects
-    FreeBullets(&listBullets);
+    FreeBullets(&myGame.listBullets);
     FreeRocks(&listRocks);
     FreeExplosions(&listExplosions);
 

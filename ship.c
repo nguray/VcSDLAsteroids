@@ -48,7 +48,7 @@ void Ship_Draw( Ship *ptrShip, SDL_Renderer *renderer)
     //-- Draw remain life
     x0 = WIN_WIDTH - 100.0f;
     y0 = 14.0;
-    for (int i=0; i<myLifes; ++i){
+    for (int i=0; i<myGame.nbLifes; ++i){
 
         x1 = x0 + miniShipShape[0].x;
         y1 = y0 + miniShipShape[0].y;

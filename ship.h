@@ -9,6 +9,7 @@ typedef struct Ship{
     float angle;
     int   iThrust;
     int   iRotate;
+    int   iTrigger;
     SDL_bool fHide;
     SDL_FPoint u;
     SDL_FPoint n;

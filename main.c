@@ -338,6 +338,28 @@ int PlayModeProcessEvent(SDL_Event event, SDL_Joystick *joystick,Game *game,Ship
 int GameOverModeProcessEvent(SDL_Event event, SDL_Joystick *joystick,Game *game,Ship *ship)
 {
     //-----------------------------------------------------
+    if (event.type == SDL_QUIT){
+        return SDL_TRUE;
+
+    }else if ((event.type == SDL_KEYDOWN) && (!event.key.repeat)){
+        //printf("Keydown\n");
+        if(event.key.keysym.sym == SDLK_ESCAPE){
+            return SDL_TRUE;
+            //printf("Escape Key\n");
+        }else if(event.key.keysym.sym == SDLK_SPACE){
+            game->mode = IDLE_MODE;
+            ProcessEvent = &IdleModeProcessEvent;
+
+        }else if(event.key.keysym.sym == SDLK_p){
+            game->fPause ^= SDL_TRUE;
+        }
+    }else if ((event.type == SDL_KEYUP)){
+        //printf("KeyUp\n");
+        if(event.key.keysym.sym == SDLK_SPACE){
+        //    myShip.iTrigger = 0;
+        }
+    }
+    return SDL_FALSE;
 
 }
 
@@ -364,10 +386,6 @@ int main(int argc, char *argv[])
 
     srand(time(NULL));   // Initialization, should only be called once.
 
-    myGame.score = 0;
-    myGame.nbLifes = 3;
-    myGame.listBullets = NULL;
-    NewLevel( &listRocks, &myGame);
 
     if(0 != SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_JOYSTICK))
     {
@@ -421,6 +439,10 @@ int main(int argc, char *argv[])
 
     myGame.mode = IDLE_MODE;
     ProcessEvent = &IdleModeProcessEvent;
+    myGame.score = 0;
+    myGame.nbLifes = 3;
+    myGame.listBullets = NULL;
+    NewLevel( &listRocks, &myGame);
 
     SDL_Event event;
     while(!quit)
@@ -525,10 +547,18 @@ int main(int argc, char *argv[])
                         //fPause = SDL_TRUE;
                         free(myShip);
                         myShip = NULL;
-                    // }else{
-                    //     myShip.x = WIN_WIDTH/2;
-                    //     myShip.y = WIN_HEIGHT/2;
-                    //     myShip.v = (SDL_FPoint) {0.0,0.0};
+                        myGame.mode = GAME_OVER_MODE;
+                        ProcessEvent = &GameOverModeProcessEvent;
+                        myGame.score = 0;
+                        myGame.nbLifes = 3;
+                        FreeBullets(&myGame.listBullets);
+                        FreeRocks(&listRocks);
+                        FreeExplosions(&listExplosions);
+                        myGame.listBullets = NULL;
+                        listRocks = NULL;
+                        listExplosions = NULL;
+                        NewLevel( &listRocks, &myGame);
+
                     }
                 }
             }
@@ -630,6 +660,9 @@ int main(int argc, char *argv[])
     FreeBullets(&myGame.listBullets);
     FreeRocks(&listRocks);
     FreeExplosions(&listExplosions);
+    if (myShip){
+        free(myShip);
+    }   
 
     //SDL_Delay(3000);
 

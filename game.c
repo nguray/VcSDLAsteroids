@@ -2,4 +2,4 @@
 #include "game.h"
 
 Game myGame;
-Ship myShip;
+Ship *myShip=NULL;

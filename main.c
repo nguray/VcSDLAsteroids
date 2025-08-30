@@ -77,7 +77,8 @@ Symbol charX = { 2, {{{0,0},{8,12}},{{8,0},{0,12}}} };
 Symbol charY = { 3, {{{0,0},{4,5}},{{4,5},{8,0}},{{4,5},{4,12}}} };
 Symbol charZ = { 3, {{{0,0},{8,0}},{{8,0},{0,12}},{{0,12},{8,12}}} };
 
-
+Symbol *tabChars[] = { &charA, &charB, &charC, &charD, &charE, &charF, &charG, &charH, &charI, &charJ, &charK, &charL, &charM,
+                      &charN, &charO, &charP, &charQ, &charR, &charS, &charT, &charU, &charV, &charW, &charX, &charY, &charZ };
 
 //-------------------------------------------------------------------
 //-------------------------------------------------------------------
@@ -100,29 +101,30 @@ void Symbol_Draw(Symbol *ptrSymbol,SDL_Renderer *renderer,float x,float y)
 
 }
 
-void DisplayGameOverMessage(SDL_Renderer *renderer)
+void DisplayMessage(SDL_Renderer *renderer, float xt, float yt, char *msg)
+{
+    int i,ic;
+    float xc;
+    char c;
+    //--------------------------------------------------------------
+    if (strlen(msg)){
+        ic = 0;
+        while(c=msg[ic++]){
+            i = c - 'A';
+            if ((i>=0)&&(i<26)){
+                xc = ic*14.0 + xt;
+                Symbol_Draw( tabChars[i], renderer, xc, yt);
+            } 
+        }
+    }
+}
+
+float MessageWidth(char *msg)
 {
     //--------------------------------------------------------------
-    float x = WIN_WIDTH/2 - 4.5*14.0;
-    float y = WIN_HEIGHT/2 - 10.0;
-    Symbol_Draw( &charG, renderer, x, y);
-    x += 14.0;
-    Symbol_Draw( &charA, renderer, x, y);
-    x += 14.0;
-    Symbol_Draw( &charM, renderer, x, y);
-    x += 14.0;
-    Symbol_Draw( &charE, renderer, x, y);
-    x += 14.0;
-    x += 14.0;
-    Symbol_Draw( &charO, renderer, x, y);
-    x += 14.0;
-    Symbol_Draw( &charV, renderer, x, y);
-    x += 14.0;
-    Symbol_Draw( &charE, renderer, x, y);
-    x += 14.0;
-    Symbol_Draw( &charR, renderer, x, y);
-
+    return strlen(msg)*14.0;
 }
+
 
 //-------------------------------------------------------------------
 //-------------------------------------------------------------------
@@ -172,22 +174,57 @@ void NewLevel( Rock **listRocks, Game *game)
         AddNewRock(listRocks);
 
     }
-    Ship_SetLocation( &myShip, 320, 240);
-    Ship_SetVelocity(&myShip, 0.0, 0.0);
-    game->nbLifes = 3;
+    if (myShip){
+        Ship_SetLocation( myShip, 320, 240);
+        Ship_SetVelocity( myShip, 0.0, 0.0);
+    }
     game->fPause = SDL_FALSE;
 
 }
 
+int PlayModeProcessEvent(SDL_Event event, SDL_Joystick *joystick,Game *game,Ship *ship);
+
+int (*ProcessEvent) (SDL_Event event, SDL_Joystick *joystick, struct Game *game,Ship *ship);
+
 int IdleModeProcessEvent(SDL_Event event, SDL_Joystick *joystick,Game *game,Ship *ship)
 {
     //-----------------------------------------------------
+    if (event.type == SDL_QUIT){
+        return SDL_TRUE;
+
+    }else if ((event.type == SDL_KEYDOWN) && (!event.key.repeat)){
+        //printf("Keydown\n");
+        if(event.key.keysym.sym == SDLK_ESCAPE){
+            return SDL_TRUE;
+            //printf("Escape Key\n");
+        }else if(event.key.keysym.sym == SDLK_SPACE){
+            game->mode = PLAY_MODE;
+            ProcessEvent = &PlayModeProcessEvent;
+            if (myShip=(Ship *) calloc(1,sizeof(Ship))){
+                myShip->iTrigger = 0;
+                Ship_SetThrust(myShip, 0);
+                Ship_SetRotate(myShip, 0);
+                Ship_SetLocation(myShip, 320, 240);
+                Ship_SetAngle( myShip, -90.0f);
+            }
+
+        }else if(event.key.keysym.sym == SDLK_p){
+            game->fPause ^= SDL_TRUE;
+        }
+    }else if ((event.type == SDL_KEYUP)){
+        //printf("KeyUp\n");
+        if(event.key.keysym.sym == SDLK_SPACE){
+        //    myShip.iTrigger = 0;
+        }
+    }
+    return SDL_FALSE;
 
 }
 
 int PlayModeProcessEvent(SDL_Event event, SDL_Joystick *joystick,Game *game,Ship *ship)
 {
     //-----------------------------------------------------
+    if (ship==NULL) return SDL_FALSE;
     // Read gamepad
     if (joystick){
 
@@ -196,33 +233,33 @@ int PlayModeProcessEvent(SDL_Event event, SDL_Joystick *joystick,Game *game,Ship
             printf("Joystick event axis  %d --> %d\n",event.jaxis.axis,event.jaxis.value); // axis number
             if (event.jaxis.axis==4){
                 if (event.jaxis.value>100){
-                    Ship_SetRotate(&myShip, 1);
+                    Ship_SetRotate(ship, 1);
                 }else if (event.jaxis.value<-100){
-                    Ship_SetRotate(&myShip, -1);
+                    Ship_SetRotate(ship, -1);
                 }else{
-                    Ship_SetRotate(&myShip, 0);
+                    Ship_SetRotate(ship, 0);
                 }
             }
             if (event.jaxis.axis==1){
                 if (event.jaxis.value>100){
-                    Ship_SetThrust(&myShip, -1);
+                    Ship_SetThrust(ship, -1);
                 }else if (event.jaxis.value<-100){
-                    Ship_SetThrust(&myShip, 1);
+                    Ship_SetThrust(ship, 1);
                 }else{
-                    Ship_SetThrust(&myShip, 0);
+                    Ship_SetThrust(ship, 0);
                 }
             }
 
         }else if (event.type == SDL_JOYBUTTONDOWN){
             printf("Joystick event button down %d\n",event.jbutton.button);
             if (event.jbutton.button==5){
-                myShip.iTrigger = 1;
+                ship->iTrigger = 1;
             }
 
         }else if (event.type == SDL_JOYBUTTONUP){
             printf("Joystick event button up %d\n",event.jbutton.button);
             if (event.jbutton.button==5){
-                myShip.iTrigger = 0;
+                ship->iTrigger = 0;
             }
 
         }else if (event.type == SDL_JOYHATMOTION){
@@ -265,16 +302,16 @@ int PlayModeProcessEvent(SDL_Event event, SDL_Joystick *joystick,Game *game,Ship
             return SDL_TRUE;
             //printf("Escape Key\n");
         }else if(event.key.keysym.sym == SDLK_LEFT){
-            Ship_SetRotate(&myShip,1);
+            Ship_SetRotate(ship,1);
         }else if(event.key.keysym.sym == SDLK_RIGHT){
-            Ship_SetRotate(&myShip,-1);
+            Ship_SetRotate(ship,-1);
         }else if(event.key.keysym.sym == SDLK_UP){
-            Ship_SetThrust(&myShip, 1);
+            Ship_SetThrust(ship, 1);
         }else if(event.key.keysym.sym == SDLK_DOWN){
-            Ship_SetThrust(&myShip, -1);
+            Ship_SetThrust(ship, -1);
         }else if(event.key.keysym.sym == SDLK_SPACE){
             //SDL_CaptureMouse(SDL_TRUE);
-            myShip.iTrigger = 1;
+            ship->iTrigger = 1;
             myGame.lastBulletTicks = SDL_GetTicks();
             //AddNewBullet( &myGame.listBullets, myShip.x, myShip.y, myShip.u);
             //Mix_PlayChannel( -1, laserSound, 0 );
@@ -284,15 +321,15 @@ int PlayModeProcessEvent(SDL_Event event, SDL_Joystick *joystick,Game *game,Ship
     }else if ((event.type == SDL_KEYUP)){
         //printf("KeyUp\n");
         if (event.key.keysym.sym == SDLK_LEFT){
-            Ship_SetRotate(&myShip, 0);
+            Ship_SetRotate(ship, 0);
         }else if(event.key.keysym.sym == SDLK_RIGHT){
-            Ship_SetRotate(&myShip, 0);
+            Ship_SetRotate(ship, 0);
         }else if(event.key.keysym.sym == SDLK_UP){
-            Ship_SetThrust(&myShip, 0);
+            Ship_SetThrust(ship, 0);
         }else if(event.key.keysym.sym == SDLK_DOWN){
-            Ship_SetThrust(&myShip, 0);
+            Ship_SetThrust(ship, 0);
         }else if(event.key.keysym.sym == SDLK_SPACE){
-            myShip.iTrigger = 0;
+            ship->iTrigger = 0;
         }
     }
     return SDL_FALSE;
@@ -311,8 +348,6 @@ int HighScoresModeProcessEvent(SDL_Event event, SDL_Joystick *joystick,Game *gam
 }
 
 
-int (*ProcessEvent) (SDL_Event event, SDL_Joystick *joystick, struct Game *game,Ship *ship);
-
 int main(int argc, char *argv[])
 {
     SDL_Window *window = NULL;
@@ -326,22 +361,17 @@ int main(int argc, char *argv[])
     Rock    *listRocks = NULL;
     Explosion *listExplosions = NULL;
 
-    myShip.iTrigger = 0;
-    Ship_SetThrust(&myShip, 0);
-    Ship_SetRotate(&myShip, 0);
-    Ship_SetLocation( &myShip, 320, 240);
-
-    Ship_SetAngle( &myShip, -90.0f);
 
     srand(time(NULL));   // Initialization, should only be called once.
 
     myGame.score = 0;
+    myGame.nbLifes = 3;
     myGame.listBullets = NULL;
     NewLevel( &listRocks, &myGame);
 
     if(0 != SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_JOYSTICK))
     {
-        fprintf(stderr, "Erreur SDL_Init : %s", SDL_GetError());
+        fprintf(stderr, "SDL_Init Error : %s", SDL_GetError());
         return EXIT_FAILURE;
     }
 
@@ -370,7 +400,7 @@ int main(int argc, char *argv[])
                               WIN_WIDTH, WIN_HEIGHT, SDL_WINDOW_SHOWN);
     if(NULL == window)
     {
-        fprintf(stderr, "Erreur SDL_CreateWindow : %s", SDL_GetError());
+        fprintf(stderr, "SDL_CreateWindow Error: %s", SDL_GetError());
         return EXIT_FAILURE;
     }
 
@@ -379,7 +409,7 @@ int main(int argc, char *argv[])
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
     if(NULL == renderer)
     {
-        fprintf(stderr, "Erreur SDL_CreateRenderer : %s", SDL_GetError());
+        fprintf(stderr, "SDL_CreateRenderer Error : %s", SDL_GetError());
         SDL_bool quit = SDL_TRUE;
     }
 
@@ -389,42 +419,44 @@ int main(int argc, char *argv[])
     Uint32 lastBulletTicks = curTicks;
     Uint32 lastUpdateExplosionTicks = curTicks;
 
-    ProcessEvent = &PlayModeProcessEvent;
+    myGame.mode = IDLE_MODE;
+    ProcessEvent = &IdleModeProcessEvent;
 
     SDL_Event event;
     while(!quit)
     {
         while(SDL_PollEvent(&event)){
-            quit = ProcessEvent(event, joystick, &myGame, &myShip);
+            quit = ProcessEvent(event, joystick, &myGame, myShip);
         }
 
         if (myGame.fPause==SDL_FALSE){
 
             // Update Game states
-
-            if (myShip.iRotate==1){
-                Ship_SetAngle(&myShip, myShip.angle - 1.0f);
-            }else if (myShip.iRotate==-1){
-                Ship_SetAngle(&myShip, myShip.angle + 1.0f);
-            }
-
-
-            if (myShip.iThrust>0){
-                Ship_Accelerate(&myShip, 0.015f);
-            }else if (myShip.iThrust<0){
-                Ship_Decelerate(&myShip, 0.015f);
-            }
-
-            if (myShip.iTrigger){
-                Uint32 curTicks = SDL_GetTicks();
-                if ((curTicks-lastBulletTicks)>200){
-                    lastBulletTicks = curTicks;
-                    AddNewBullet( &myGame.listBullets, myShip.x, myShip.y, myShip.u);
-                    Mix_PlayChannel( -1, laserSound, 0 );
+            if (myShip){
+                if (myShip->iRotate==1){
+                    Ship_SetAngle(myShip, myShip->angle - 1.0f);
+                }else if (myShip->iRotate==-1){
+                    Ship_SetAngle(myShip, myShip->angle + 1.0f);
                 }
-            }
 
-            Ship_UpdatePosition(&myShip);
+
+                if (myShip->iThrust>0){
+                    Ship_Accelerate(myShip, 0.015f);
+                }else if (myShip->iThrust<0){
+                    Ship_Decelerate(myShip, 0.015f);
+                }
+
+                if (myShip->iTrigger){
+                    Uint32 curTicks = SDL_GetTicks();
+                    if ((curTicks-lastBulletTicks)>200){
+                        lastBulletTicks = curTicks;
+                        AddNewBullet( &myGame.listBullets, myShip->x, myShip->y, myShip->u);
+                        Mix_PlayChannel( -1, laserSound, 0 );
+                    }
+                }
+
+                Ship_UpdatePosition(myShip);
+            }
 
             UpdateRockPositions(listRocks);
             UpdateBulletPositions(myGame.listBullets);
@@ -461,40 +493,43 @@ int main(int argc, char *argv[])
             }
 
             //-- Check Ship <-> Rock collision
-            SDL_bool fLost = SDL_FALSE;
-            Rock *ptrRock;
-            if (ptrRock=listRocks){
-                float vx,vy,d;
-                do{
-                    for (int i=0;i<3;++i){
-                        vx = ptrRock->x - myShip.vertices[i].x;
-                        vy = ptrRock->y - myShip.vertices[i].y;
-                        d = sqrt(vx*vx+vy*vy);
-                        if (d<ptrRock->rayMax){
-                            fLost = SDL_TRUE;
-                            ptrRock->fDeleted = SDL_TRUE;
-                            AddNewExplosion(&listExplosions,ptrRock->x,ptrRock->y, ptrRock->v.x, ptrRock->v.y);
-                            AddNewExplosion(&listExplosions,myShip.x, myShip.y, myShip.v.x, myShip.v.y);
-                            Ship_SetLocation( &myShip, WIN_WIDTH/2, WIN_HEIGHT/2);
-                            Ship_SetVelocity( &myShip, 0.0, 0.0);
-                            Mix_PlayChannel( -1, explosionSound, 0 );                
-                            //fPause = SDL_TRUE;
-                            break;
+            if (myShip){
+                SDL_bool fLost = SDL_FALSE;
+                Rock *ptrRock;
+                if (ptrRock=listRocks){
+                    float vx,vy,d;
+                    do{
+                        for (int i=0;i<3;++i){
+                            vx = ptrRock->x - myShip->vertices[i].x;
+                            vy = ptrRock->y - myShip->vertices[i].y;
+                            d = sqrt(vx*vx+vy*vy);
+                            if (d<ptrRock->rayMax){
+                                fLost = SDL_TRUE;
+                                ptrRock->fDeleted = SDL_TRUE;
+                                AddNewExplosion(&listExplosions,ptrRock->x,ptrRock->y, ptrRock->v.x, ptrRock->v.y);
+                                AddNewExplosion(&listExplosions,myShip->x, myShip->y, myShip->v.x, myShip->v.y);
+                                Ship_SetLocation( myShip, WIN_WIDTH/2, WIN_HEIGHT/2);
+                                Ship_SetVelocity( myShip, 0.0, 0.0);
+                                Mix_PlayChannel( -1, explosionSound, 0 );                
+                                //fPause = SDL_TRUE;
+                                break;
+                            }
                         }
+
+                    }while((fLost==SDL_FALSE) && (ptrRock=ptrRock->next));
+                }
+
+                if (fLost){
+                    myGame.nbLifes--;
+                    if (myGame.nbLifes==0){
+                        //fPause = SDL_TRUE;
+                        free(myShip);
+                        myShip = NULL;
+                    // }else{
+                    //     myShip.x = WIN_WIDTH/2;
+                    //     myShip.y = WIN_HEIGHT/2;
+                    //     myShip.v = (SDL_FPoint) {0.0,0.0};
                     }
-
-                }while((fLost==SDL_FALSE) && (ptrRock=ptrRock->next));
-            }
-
-            if (fLost){
-                myGame.nbLifes--;
-                if (myGame.nbLifes==0){
-                    //fPause = SDL_TRUE;
-                    myShip.fHide = SDL_TRUE;
-                // }else{
-                //     myShip.x = WIN_WIDTH/2;
-                //     myShip.y = WIN_HEIGHT/2;
-                //     myShip.v = (SDL_FPoint) {0.0,0.0};
                 }
             }
 
@@ -530,7 +565,7 @@ int main(int argc, char *argv[])
         SDL_RenderClear(renderer);
 
         //
-        Ship_Draw( &myShip, renderer);
+        if (myShip) Ship_Draw( myShip, renderer);
 
         DrawBullets( myGame.listBullets, renderer);
         DrawRocks(listRocks, renderer);
@@ -565,7 +600,23 @@ int main(int argc, char *argv[])
         // Symbol_Draw(&charY,renderer, 50.0+24*20.0, 100.0);
         // Symbol_Draw(&charZ,renderer, 50.0+25*20.0, 100.0);
 
-        DisplayGameOverMessage(renderer);
+        char strStart[]="PRESS TRIGGER TO START";
+        char strGameOver[]="GAME OVER";
+
+        switch (myGame.mode){
+            case IDLE_MODE:
+                DisplayMessage(renderer, (WIN_WIDTH-MessageWidth(strStart))/2.0, WIN_HEIGHT/2, strStart);
+                break;
+            case PLAY_MODE:
+                break;
+            case HIGH_SCORES_MODE:
+                break;
+            case GAME_OVER_MODE:
+                DisplayMessage(renderer, (WIN_WIDTH-MessageWidth(strGameOver))/2.0, WIN_HEIGHT/2, strGameOver);
+                break;
+        }
+
+
 
         //
         SDL_RenderPresent(renderer);

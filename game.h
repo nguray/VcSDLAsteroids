@@ -9,7 +9,16 @@
 #define WIN_WIDTH  640
 #define WIN_HEIGHT 480
 
+enum{
+    IDLE_MODE,
+    PLAY_MODE,
+    HIGH_SCORES_MODE,
+    GAME_OVER_MODE
+};
+
+
 typedef struct Game {
+    int mode;
     int iLevel;
     int nbLifes;
     int score ;
@@ -20,4 +29,4 @@ typedef struct Game {
 } Game;
 
 extern Game myGame;
-extern Ship myShip;
+extern Ship *myShip;

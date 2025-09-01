@@ -125,6 +125,43 @@ float MessageWidth(char *msg)
     return strlen(msg)*14.0;
 }
 
+void LoadHighScores(Game *myGame)
+{
+    int  i, ival;
+    char mot[82];
+    FILE *fich;
+    //--------------------------------------------------------------
+    if ( (myGame) &&(fich=fopen("highscores.txt","r")) ){
+
+        //
+        i = 0;
+        while( (i<10) &&!feof(fich) ){
+            fscanf(fich,"%s %d", mot, &ival);
+            myGame->highScores[i].score = ival;
+            strncpy(myGame->highScores[i].name,mot,8);
+            myGame->highScores[i].name[8] = '\0';
+            printf("%d>>>> %s : %d\n", i,myGame->highScores[i].name, myGame->highScores[i].score);
+            i++;
+        }
+
+        //--
+        fclose(fich);
+    }
+}
+
+void SaveHighScores(Game *myGame)
+{
+    FILE *fich;
+    //--------------------------------------------------------------
+    if ( (myGame) &&(fich=fopen("highscores.txt","w")) ){
+        for(int i=0;i<10;++i){
+            fprintf(fich,"%s %d\n",myGame->highScores[i].name, myGame->highScores[i].score);
+        }
+        //--
+        fclose(fich);
+    }
+
+}
 
 //-------------------------------------------------------------------
 //-------------------------------------------------------------------
@@ -444,6 +481,8 @@ int main(int argc, char *argv[])
     myGame.listBullets = NULL;
     NewLevel( &listRocks, &myGame);
 
+    LoadHighScores(&myGame);
+
     SDL_Event event;
     while(!quit)
     {
@@ -554,9 +593,6 @@ int main(int argc, char *argv[])
                         FreeBullets(&myGame.listBullets);
                         FreeRocks(&listRocks);
                         FreeExplosions(&listExplosions);
-                        myGame.listBullets = NULL;
-                        listRocks = NULL;
-                        listExplosions = NULL;
                         NewLevel( &listRocks, &myGame);
 
                     }
@@ -647,7 +683,6 @@ int main(int argc, char *argv[])
         }
 
 
-
         //
         SDL_RenderPresent(renderer);
 
@@ -665,6 +700,9 @@ int main(int argc, char *argv[])
     }   
 
     //SDL_Delay(3000);
+
+    //--
+    SaveHighScores(&myGame);
 
     if(NULL != renderer)
         SDL_DestroyRenderer(renderer);

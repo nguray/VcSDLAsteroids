@@ -16,6 +16,11 @@ enum{
     GAME_OVER_MODE
 };
 
+typedef struct HighScore{
+    int     score;
+    char    name[12];
+} HighScore;
+
 
 typedef struct Game {
     int mode;
@@ -25,7 +30,7 @@ typedef struct Game {
     SDL_bool fPause;
     Uint32 lastBulletTicks;
     Bullet  *listBullets;
-
+    HighScore highScores[10];
 } Game;
 
 extern Game myGame;

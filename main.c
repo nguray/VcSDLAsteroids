@@ -28,68 +28,68 @@ typedef struct Segment {
 } Segment;
 
 typedef struct Symbol {
+    char    c;
     int     nbSegments;
     Segment segments[];
 } Symbol;
 
 
-Symbol num0 = { 4, {{{0,0},{8,0}},{{8,0},{8,12}},{{8,12},{0,12}},{{0,12},{0,0}}}};
-Symbol num1 = { 1, {{{4,0},{4,12}}}};
-Symbol num2 = { 5, {{{0,0},{8,0}}, {{8,0},{8,5}}, {{8,5},{0,5}}, {{0,5},{0,12}}, {{0,12},{8,12}}} };
-Symbol num3 = { 4, {{{0,0},{8,0}}, {{8,0},{8,12}}, {{8,12},{0,12}}, {{0,5},{8,5}}} };
-Symbol num4 = { 3, {{{0,0},{0,5}}, {{0,5},{8,5}}, {{8,0},{8,12}}} };
-Symbol num5 = { 5, {{{0,0},{8,0}}, {{0,0},{0,5}}, {{0,5},{8,5}}, {{8,5},{8,12}}, {{8,12},{0,12}}} };
-Symbol num6 = { 5, {{{0,0},{8,0}}, {{0,0},{0,12}}, {{0,5},{8,5}}, {{8,5},{8,12}}, {{8,12},{0,12}}} };
-Symbol num7 = { 2, {{{0,0},{8,0}}, {{8,0},{8,12}}} };
-Symbol num8 = { 5, {{{0,0},{0,12}}, {{8,0},{8,12}}, {{0,0},{8,0}}, {{0,5},{8,5}}, {{0,12},{8,12}}} };
-Symbol num9 = { 5, {{{0,0},{8,0}}, {{0,5},{8,5}}, {{0,0},{0,5}}, {{8,0},{8,12}}, {{0,12},{8,12}}} };
+Symbol num0 = { '0', 4, {{{0,0},{8,0}},{{8,0},{8,12}},{{8,12},{0,12}},{{0,12},{0,0}}}};
+Symbol num1 = { '1',1, {{{4,0},{4,12}}}};
+Symbol num2 = { '2',5, {{{0,0},{8,0}}, {{8,0},{8,5}}, {{8,5},{0,5}}, {{0,5},{0,12}}, {{0,12},{8,12}}} };
+Symbol num3 = { '3',4, {{{0,0},{8,0}}, {{8,0},{8,12}}, {{8,12},{0,12}}, {{0,5},{8,5}}} };
+Symbol num4 = { '4',3, {{{0,0},{0,5}}, {{0,5},{8,5}}, {{8,0},{8,12}}} };
+Symbol num5 = { '5',5, {{{0,0},{8,0}}, {{0,0},{0,5}}, {{0,5},{8,5}}, {{8,5},{8,12}}, {{8,12},{0,12}}} };
+Symbol num6 = { '6',5, {{{0,0},{8,0}}, {{0,0},{0,12}}, {{0,5},{8,5}}, {{8,5},{8,12}}, {{8,12},{0,12}}} };
+Symbol num7 = { '7',2, {{{0,0},{8,0}}, {{8,0},{8,12}}} };
+Symbol num8 = { '8',5, {{{0,0},{0,12}}, {{8,0},{8,12}}, {{0,0},{8,0}}, {{0,5},{8,5}}, {{0,12},{8,12}}} };
+Symbol num9 = { '9',5, {{{0,0},{8,0}}, {{0,5},{8,5}}, {{0,0},{0,5}}, {{8,0},{8,12}}, {{0,12},{8,12}}} };
 
 Symbol *nums[] = {&num0, &num1, &num2, &num3, &num4, &num5, &num6, &num7, &num8, &num9};
 
-Symbol charA = { 5, {{{0,12},{0,4}},{{0,4},{4,0}},{{4,0},{8,4}},{{8,4},{8,12}},{{0,7},{8,7}}}};
-Symbol charB = { 10, {{{0,0},{6,0}},{{6,0},{8,2}},{{8,2},{8,4}},{{8,4},{6,6}},{{6,6},{8,8}},
+Symbol charA = { 'A', 5, {{{0,12},{0,4}},{{0,4},{4,0}},{{4,0},{8,4}},{{8,4},{8,12}},{{0,7},{8,7}}}};
+Symbol charB = { 'B',10, {{{0,0},{6,0}},{{6,0},{8,2}},{{8,2},{8,4}},{{8,4},{6,6}},{{6,6},{8,8}},
                       {{8,8},{8,10}},{{8,10},{6,12}},{{6,12},{0,12}},{{0,6},{8,6}},{{0,0},{0,12}}}};
-Symbol charC = { 3, {{{0,0},{8,0}}, {{0,0},{0,12}}, {{0,12},{8,12}}} };
-Symbol charD = { 6, {{{0,0},{5,0}},{{5,0},{8,3}},{{8,3},{8,9}},{{8,9},{5,12}},{{5,12},{0,12}},{{0,12},{0,0}}} };
-Symbol charE = { 4, {{{0,0},{8,0}}, {{0,0},{0,12}}, {{0,12},{8,12}}, {{0,6},{5,6}}} };
-Symbol charF = { 3, {{{0,0},{8,0}}, {{0,0},{0,12}}, {{0,6},{5,6}}} };
-Symbol charG = { 5, {{{8,0},{0,0}},{{0,0},{0,12}},{{0,12},{8,12}},{{8,12},{8,7}},{{8,7},{5,7}}}};
-Symbol charH = { 3, {{{0,0},{0,12}},{{8,0},{8,12}},{{0,6},{8,6}}} };
-Symbol charI = { 3, {{{3,0},{5,0}},{{4,0},{4,12}},{{3,12},{5,12}}} };
-Symbol charJ = { 3, {{{8,0},{8,12}},{{8,12},{0,12}},{{0,12},{0,8}}} };
-Symbol charK = { 3, {{{0,0},{0,12}},{{0,6},{8,0}},{{0,6},{8,12}}} };
-Symbol charL = { 2, {{{0,0},{0,12}},{{0,12},{8,12}}} };
-Symbol charM = { 4, {{{0,12},{0,0}}, {{0,0},{4,4}}, {{4,4},{8,0}}, {{8,0},{8,12}}} };
-Symbol charN = { 3, {{{0,12},{0,0}}, {{0,0},{8,12}}, {{8,12},{8,0}}} };
-Symbol charO = { 8, {{{0,2},{2,0}},{{2,0},{6,0}},{{6,0},{8,2}},{{8,2},{8,10}},{{8,10},{6,12}},
+Symbol charC = { 'C',3, {{{0,0},{8,0}}, {{0,0},{0,12}}, {{0,12},{8,12}}} };
+Symbol charD = { 'D',6, {{{0,0},{5,0}},{{5,0},{8,3}},{{8,3},{8,9}},{{8,9},{5,12}},{{5,12},{0,12}},{{0,12},{0,0}}} };
+Symbol charE = { 'E',4, {{{0,0},{8,0}}, {{0,0},{0,12}}, {{0,12},{8,12}}, {{0,6},{5,6}}} };
+Symbol charF = { 'F',3, {{{0,0},{8,0}}, {{0,0},{0,12}}, {{0,6},{5,6}}} };
+Symbol charG = { 'G',5, {{{8,0},{0,0}},{{0,0},{0,12}},{{0,12},{8,12}},{{8,12},{8,7}},{{8,7},{5,7}}}};
+Symbol charH = { 'H',3, {{{0,0},{0,12}},{{8,0},{8,12}},{{0,6},{8,6}}} };
+Symbol charI = { 'I',3, {{{3,0},{5,0}},{{4,0},{4,12}},{{3,12},{5,12}}} };
+Symbol charJ = { 'J',3, {{{8,0},{8,12}},{{8,12},{0,12}},{{0,12},{0,8}}} };
+Symbol charK = { 'K',3, {{{0,0},{0,12}},{{0,6},{8,0}},{{0,6},{8,12}}} };
+Symbol charL = { 'L',2, {{{0,0},{0,12}},{{0,12},{8,12}}} };
+Symbol charM = { 'M',4, {{{0,12},{0,0}}, {{0,0},{4,4}}, {{4,4},{8,0}}, {{8,0},{8,12}}} };
+Symbol charN = { 'N',3, {{{0,12},{0,0}}, {{0,0},{8,12}}, {{8,12},{8,0}}} };
+Symbol charO = { 'O',8, {{{0,2},{2,0}},{{2,0},{6,0}},{{6,0},{8,2}},{{8,2},{8,10}},{{8,10},{6,12}},
                       {{6,12},{2,12}},{{2,12},{0,10}},{{0,10},{0,2}}}};
-Symbol charP = { 4, {{{0,0},{8,0}}, {{8,0},{8,6}}, {{8,6},{0,6}}, {{0,0},{0,12}}} };
-Symbol charQ = { 9, {{{0,2},{2,0}},{{2,0},{6,0}},{{6,0},{8,2}},{{8,2},{8,10}},{{8,10},{6,12}},
+Symbol charP = { 'P',4, {{{0,0},{8,0}}, {{8,0},{8,6}}, {{8,6},{0,6}}, {{0,0},{0,12}}} };
+Symbol charQ = { 'Q',9, {{{0,2},{2,0}},{{2,0},{6,0}},{{6,0},{8,2}},{{8,2},{8,10}},{{8,10},{6,12}},
                       {{6,12},{2,12}},{{2,12},{0,10}},{{0,10},{0,2}},{{8,12},{5,9}}}};
-Symbol charR = { 5, {{{0,0},{8,0}},{{8,0},{8,6}},{{8,6},{0,6}},{{0,0},{0,12}},{{2,7},{8,12}}}};
-Symbol charS = { 9, {{{8,0},{2,0}},{{2,0},{0,2}},{{0,2},{0,4}},{{0,4},{2,6}},{{2,6},{6,6}},
+Symbol charR = { 'R',5, {{{0,0},{8,0}},{{8,0},{8,6}},{{8,6},{0,6}},{{0,0},{0,12}},{{2,7},{8,12}}}};
+Symbol charS = { 'S',9, {{{8,0},{2,0}},{{2,0},{0,2}},{{0,2},{0,4}},{{0,4},{2,6}},{{2,6},{6,6}},
                       {{6,6},{8,8}},{{8,8},{8,10}},{{8,10},{6,12}},{{6,12},{0,12}}}};
-Symbol charT = { 2, {{{0,0},{8,0}},{{4,0},{4,12}}} };
-Symbol charU = { 3, {{{0,0},{0,12}},{{0,12},{8,12}},{{8,12},{8,0}}} };
-Symbol charV = { 2, {{{0,0},{4,12}},{{4,12},{8,0}}} };
-Symbol charW = { 4, {{{0,0},{0,12}}, {{0,12},{4,7}}, {{4,7},{8,12}}, {{8,12},{8,0}}} };
-Symbol charX = { 2, {{{0,0},{8,12}},{{8,0},{0,12}}} };
-Symbol charY = { 3, {{{0,0},{4,5}},{{4,5},{8,0}},{{4,5},{4,12}}} };
-Symbol charZ = { 3, {{{0,0},{8,0}},{{8,0},{0,12}},{{0,12},{8,12}}} };
+Symbol charT = { 'T',2, {{{0,0},{8,0}},{{4,0},{4,12}}} };
+Symbol charU = { 'U',3, {{{0,0},{0,12}},{{0,12},{8,12}},{{8,12},{8,0}}} };
+Symbol charV = { 'V',2, {{{0,0},{4,12}},{{4,12},{8,0}}} };
+Symbol charW = { 'W',4, {{{0,0},{0,12}}, {{0,12},{4,7}}, {{4,7},{8,12}}, {{8,12},{8,0}}} };
+Symbol charX = { 'X',2, {{{0,0},{8,12}},{{8,0},{0,12}}} };
+Symbol charY = { 'Y',3, {{{0,0},{4,5}},{{4,5},{8,0}},{{4,5},{4,12}}} };
+Symbol charZ = { 'Z',3, {{{0,0},{8,0}},{{8,0},{0,12}},{{0,12},{8,12}}} };
+Symbol char_ = { '_',1, {{{0,12},{8,12}}}};
+Symbol charSPC = { ' ',1, {{{4,12},{6,12}}}};
 
 Symbol *tabChars[] = { &charA, &charB, &charC, &charD, &charE, &charF, &charG, &charH, &charI, &charJ, &charK, &charL, &charM,
-                      &charN, &charO, &charP, &charQ, &charR, &charS, &charT, &charU, &charV, &charW, &charX, &charY, &charZ };
+                      &charN, &charO, &charP, &charQ, &charR, &charS, &charT, &charU, &charV, &charW, &charX, &charY, &charZ, &char_, &charSPC };
 
 //-------------------------------------------------------------------
 //-------------------------------------------------------------------
 void Symbol_Draw(Symbol *ptrSymbol,SDL_Renderer *renderer,float x,float y)
 {
     float   x1,y1,x2,y2;
-    SDL_Color light_grey = {200, 200, 200, 255};
     //---------------------------------------------
     
-    SDL_SetRenderDrawColor(renderer, light_grey.r, light_grey.g, light_grey.b, light_grey.a);
-
     for (int i=0;i<ptrSymbol->nbSegments;++i){
         x1 = x + ptrSymbol->segments[i].start.x;
         y1 = y + ptrSymbol->segments[i].start.y;
@@ -101,22 +101,61 @@ void Symbol_Draw(Symbol *ptrSymbol,SDL_Renderer *renderer,float x,float y)
 
 }
 
+Symbol *Char2Symbol(char c)
+{
+    Symbol *ptrSymbol;
+    //--------------------------------------------------------------
+    for (int i=0; i<28;++i){
+        if (ptrSymbol=tabChars[i]){
+            if (ptrSymbol->c==c){
+                return ptrSymbol;
+            }
+        }
+    }
+    return NULL;
+}
+
+int Char2IndexSymbol(char c)
+{
+    //--------------------------------------------------------------
+    for (int i=0; i<28;++i){
+        if (tabChars[i]->c==c){
+            return i;
+        }
+    }
+    return -1;
+}
+
 void DisplayMessage(SDL_Renderer *renderer, float xt, float yt, char *msg)
 {
     int i,ic;
     float xc;
     char c;
+    Symbol *ptrSymbol;
     //--------------------------------------------------------------
     if (strlen(msg)){
         ic = 0;
         while(c=msg[ic++]){
-            i = c - 'A';
-            if ((i>=0)&&(i<26)){
+            if (ptrSymbol=Char2Symbol(c)){
                 xc = ic*14.0 + xt;
-                Symbol_Draw( tabChars[i], renderer, xc, yt);
-            } 
+                Symbol_Draw( ptrSymbol, renderer, xc, yt);
+            }
         }
     }
+}
+
+void DisplayScore(SDL_Renderer *renderer, float x, float y, int score)
+{
+    //--------------------------------------------------------------
+    int base,n,ic=0;
+    for(int i = 5;i>=0;--i){
+        base = pow(10,i);
+        n = (int) (score / base);
+        Symbol_Draw(nums[n], renderer, x+ic*14.0, y);
+        score -= n*base;
+        ic++;
+    }
+
 }
 
 float MessageWidth(char *msg)
@@ -125,22 +164,22 @@ float MessageWidth(char *msg)
     return strlen(msg)*14.0;
 }
 
-void LoadHighScores(Game *myGame)
+void LoadHighScores(Game *game)
 {
     int  i, ival;
     char mot[82];
     FILE *fich;
     //--------------------------------------------------------------
-    if ( (myGame) &&(fich=fopen("highscores.txt","r")) ){
+    if ( (game) &&(fich=fopen("highscores.txt","r")) ){
 
         //
         i = 0;
         while( (i<10) &&!feof(fich) ){
             fscanf(fich,"%s %d", mot, &ival);
-            myGame->highScores[i].score = ival;
-            strncpy(myGame->highScores[i].name,mot,8);
-            myGame->highScores[i].name[8] = '\0';
-            printf("%d>>>> %s : %d\n", i,myGame->highScores[i].name, myGame->highScores[i].score);
+            game->highScores[i].score = ival;
+            strncpy(game->highScores[i].name,mot,8);
+            game->highScores[i].name[8] = '\0';
+            printf("%d>>>> %s : %d\n", i, game->highScores[i].name, game->highScores[i].score);
             i++;
         }
 
@@ -149,18 +188,29 @@ void LoadHighScores(Game *myGame)
     }
 }
 
-void SaveHighScores(Game *myGame)
+void SaveHighScores(Game *game)
 {
     FILE *fich;
     //--------------------------------------------------------------
-    if ( (myGame) &&(fich=fopen("highscores.txt","w")) ){
+    if ( (game) &&(fich=fopen("highscores.txt","w")) ){
         for(int i=0;i<10;++i){
-            fprintf(fich,"%s %d\n",myGame->highScores[i].name, myGame->highScores[i].score);
+            fprintf(fich,"%s %d\n", game->highScores[i].name, game->highScores[i].score);
         }
         //--
         fclose(fich);
     }
 
+}
+
+int IsHighScore(Game *game)
+{
+    //--------------------------------------------------------------
+    for(int i=0;i<10;++i){
+        if (game->score>=game->highScores[i].score){
+            return i;
+        }
+    }
+    return -1;
 }
 
 //-------------------------------------------------------------------
@@ -400,9 +450,112 @@ int GameOverModeProcessEvent(SDL_Event event, SDL_Joystick *joystick,Game *game,
 
 }
 
+void DrawHighScores(SDL_Renderer *renderer, Game *myGame)
+{
+    int x,y;
+    char mot[82];
+    SDL_Color light_grey = {200, 200, 200, 255};
+    SDL_Color red = {255, 0, 0, 255};
+    //-----------------------------------------------------
+
+    SDL_SetRenderDrawColor(renderer, light_grey.r, light_grey.g, light_grey.b, light_grey.a);
+    char strTitle[]="HIGH SCORES";
+    DisplayMessage(renderer, WIN_WIDTH/2-MessageWidth(strTitle)/2, WIN_HEIGHT/8.5, strTitle);
+
+    int xName = WIN_WIDTH / 2 - 14.0*10.0;
+    int xScore = WIN_WIDTH / 2 + 14.0*4.0;
+    int dy = 20.0;
+    int yTop = WIN_HEIGHT/4.5;
+    for(int i=0;i<10;++i){
+        if (i==myGame->iHighScore){
+            SDL_SetRenderDrawColor(renderer, red.r, red.g, red.b, red.a);
+        }else{
+            SDL_SetRenderDrawColor(renderer, light_grey.r, light_grey.g, light_grey.b, light_grey.a);
+        }
+        DisplayMessage(renderer, xName, yTop, myGame->highScores[i].name);
+        DisplayScore(renderer, xScore, yTop, myGame->highScores[i].score);
+        //--
+        yTop += dy; 
+    }
+
+    SDL_SetRenderDrawColor(renderer, light_grey.r, light_grey.g, light_grey.b, light_grey.a);
+    yTop = WIN_HEIGHT-6.0*20.0;
+    char strFooter1[]="PRESS UP  DOWN TO SET CHARACTER";
+    DisplayMessage(renderer, WIN_WIDTH/2-MessageWidth(strFooter1)/2, yTop, strFooter1);
+
+    yTop += 20.0;
+    char strFooter2[]="PRESS LEFT RIGHT TO MOVE CURSOR";
+    DisplayMessage(renderer, WIN_WIDTH/2-MessageWidth(strFooter2)/2, yTop, strFooter2);
+
+    yTop += 40.0;
+    char strFooter3[]="PRESS TRIGGER TO CONTINUE";
+    DisplayMessage(renderer, WIN_WIDTH/2-MessageWidth(strFooter3)/2, yTop, strFooter3);
+
+}
+
+
 int HighScoresModeProcessEvent(SDL_Event event, SDL_Joystick *joystick,Game *game,Ship *ship)
 {
     //-----------------------------------------------------
+    if (event.type == SDL_QUIT){
+        return SDL_TRUE;
+
+    }else if ((event.type == SDL_KEYDOWN) && (!event.key.repeat)){
+        //printf("Keydown\n");
+        if(event.key.keysym.sym == SDLK_ESCAPE){
+            return SDL_TRUE;
+            //printf("Escape Key\n");
+        }else if(event.key.keysym.sym == SDLK_SPACE){
+            game->mode = IDLE_MODE;
+            ProcessEvent = &IdleModeProcessEvent;
+        }else if(event.key.keysym.sym == SDLK_LEFT){
+            if (game->iCharHighScore>0){
+                game->iCharHighScore--;
+            }
+        }else if(event.key.keysym.sym == SDLK_RIGHT){
+            if (game->iCharHighScore<8){
+                game->iCharHighScore++;
+            }
+        }else if(event.key.keysym.sym == SDLK_UP){
+            char c = game->highScores[game->iHighScore].name[game->iCharHighScore];
+            int ic = Char2IndexSymbol(c);
+            if (ic==-1){
+                c = 'A';
+            }else{
+                if (ic>0){
+                    ic--;
+                    c = tabChars[ic]->c;
+                }else{
+                    c = tabChars[27]->c;
+                }
+            }
+            game->highScores[game->iHighScore].name[game->iCharHighScore] = c;
+        }else if(event.key.keysym.sym == SDLK_DOWN){
+            char c = game->highScores[game->iHighScore].name[game->iCharHighScore];
+            int ic = Char2IndexSymbol(c);
+            if (ic==-1){
+                c = 'A';
+            }else{
+                if (ic>=27){
+                    c = tabChars[0]->c;
+                }else{
+                    ic++;
+                    c = tabChars[ic]->c;
+                }
+            }
+            game->highScores[game->iHighScore].name[game->iCharHighScore] = c;
+        }else if(event.key.keysym.sym == SDLK_p){
+            game->fPause ^= SDL_TRUE;
+        }
+    }else if ((event.type == SDL_KEYUP)){
+        //printf("KeyUp\n");
+        if(event.key.keysym.sym == SDLK_SPACE){
+            if (!strncmp(game->highScores[game->iHighScore].name,"        ",8)){
+                strcpy(game->highScores[game->iHighScore].name,"________");
+            }
+        }
+    }
+    return SDL_FALSE;
 
 }
 
@@ -483,6 +636,12 @@ int main(int argc, char *argv[])
 
     LoadHighScores(&myGame);
 
+    // myGame.iCharHighScore = 0;
+    // myGame.iHighScore = 1;
+    // strcpy(myGame.highScores[1].name, "        ");
+    // myGame.mode = HIGH_SCORES_MODE;
+    // ProcessEvent = &HighScoresModeProcessEvent;
+
     SDL_Event event;
     while(!quit)
     {
@@ -499,7 +658,6 @@ int main(int argc, char *argv[])
                 }else if (myShip->iRotate==-1){
                     Ship_SetAngle(myShip, myShip->angle + 1.0f);
                 }
-
 
                 if (myShip->iThrust>0){
                     Ship_Accelerate(myShip, 0.015f);
@@ -581,13 +739,30 @@ int main(int argc, char *argv[])
                 }
 
                 if (fLost){
+                    
                     myGame.nbLifes--;
                     if (myGame.nbLifes==0){
-                        //fPause = SDL_TRUE;
+                        
+                        //
                         free(myShip);
                         myShip = NULL;
-                        myGame.mode = GAME_OVER_MODE;
-                        ProcessEvent = &GameOverModeProcessEvent;
+
+                        int ih = IsHighScore(&myGame);
+                        if (ih>=0){
+
+                            myGame.mode = HIGH_SCORES_MODE;
+                            ProcessEvent = &HighScoresModeProcessEvent;
+
+                            myGame.iHighScore = ih;
+                            myGame.highScores[ih].score = myGame.score;
+                            strcpy(myGame.highScores[ih].name,"        ");
+
+                        }else{
+                            myGame.mode = IDLE_MODE;
+                            ProcessEvent = &IdleModeProcessEvent;
+
+                        }
+
                         myGame.score = 0;
                         myGame.nbLifes = 3;
                         FreeBullets(&myGame.listBullets);
@@ -637,7 +812,6 @@ int main(int argc, char *argv[])
         DrawRocks(listRocks, renderer);
         DrawExplosions(listExplosions, renderer);
 
-        Draw_Score(renderer, myGame.score);
 
         // Symbol_Draw(&charA,renderer, 50.0, 100.0);
         // Symbol_Draw(&charB,renderer, 50.0+20.0, 100.0);
@@ -674,14 +848,15 @@ int main(int argc, char *argv[])
                 DisplayMessage(renderer, (WIN_WIDTH-MessageWidth(strStart))/2.0, WIN_HEIGHT/2, strStart);
                 break;
             case PLAY_MODE:
+                Draw_Score(renderer, myGame.score);
                 break;
             case HIGH_SCORES_MODE:
+                DrawHighScores(renderer, &myGame);
                 break;
             case GAME_OVER_MODE:
                 DisplayMessage(renderer, (WIN_WIDTH-MessageWidth(strGameOver))/2.0, WIN_HEIGHT/2, strGameOver);
                 break;
         }
-
 
         //
         SDL_RenderPresent(renderer);

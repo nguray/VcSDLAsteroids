@@ -30,6 +30,8 @@ typedef struct Game {
     SDL_bool fPause;
     Uint32 lastBulletTicks;
     Bullet  *listBullets;
+    int       iCharHighScore;
+    int       iHighScore;
     HighScore highScores[10];
 } Game;
 

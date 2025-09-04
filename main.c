@@ -12,6 +12,7 @@
 #include "rock.h"
 #include "explosion.h"
 #include "ship.h"
+#include "saucer.h"
 
 
 // gcc sdl01.c -o sdl01 $(sdl2-config --cflags --libs)
@@ -739,69 +740,6 @@ int HighScoresModeProcessEvent(SDL_Event event, SDL_Joystick *joystick,Game *gam
 
 }
 
-void DivideRocks(Explosion **listRocks, Rock *explRock)
-{
-    float   a,ra;
-    Rock    *ptrRock,*ptrCur;
-    //------------------------------------------------------
-    SDL_FPoint v = explRock->v;
-    float nv = sqrt(v.x*v.x+v.y*v.y);
-    SDL_FPoint u = {v.x/nv,v.y/nv};
-    SDL_FPoint n = {-u.y,u.x};
-    float r;
-
-    // Compute steering angle
-    if (fabs(n.x)<0.000001f){
-        ra = 90.0;
-    }else if (fabs(n.y)<0.000001f){
-        ra = 0.0f;
-    }else{
-        ra = atan2f(n.y, n.x);
-    }
-    int nbR = (rand()%2)?2:3;
-    for (int i=0;i<nbR;i++){
-        //--
-        if (ptrRock=(Rock *) calloc(1,sizeof(Rock))){
-            ptrRock->x = explRock->x;
-            ptrRock->y = explRock->y;
-            ptrRock->fDeleted = SDL_FALSE;
-
-            float da = ((float) (rand() % 15))*M_PI/180.0f;
-            if (rand()%2){
-                a = ra + da + i*120.0*M_PI/180.0f;
-            }else{
-                a = ra - da + i*120.0*M_PI/180.0f;
-            }
-            ptrRock->v.x = 1.3 * nv * cos(a) + v.x;
-            ptrRock->v.y = 1.3 * nv * sin(a) + v.y;
-
-            a = 0.0f;
-            ptrRock->nbVertices = 0;
-            ptrRock->rayMax = 0.0f;
-            ptrRock->rayMin = 1000.0;
-            for(int i=0;i<8;++i){
-                a += ((float) (rand() % 40 + 25))*M_PI/180.0f;
-                if (a>2*M_PI) break;
-                r = ((float) (rand() % 5)) +  explRock->rayMax/nbR;;
-                if (r < ptrRock->rayMin){
-                    ptrRock->rayMin = r;
-                }
-                if (r > ptrRock->rayMax){
-                    ptrRock->rayMax = r;
-                }
-                ptrRock->vertices[ptrRock->nbVertices].x = r * cos(a);
-                ptrRock->vertices[ptrRock->nbVertices].y = r * sin(a);
-                ptrRock->nbVertices++;
-            }
-
-            ptrRock->next = *listRocks;
-            *listRocks = ptrRock;
-        }
-
-    }
-
-
-}
 
 int main(int argc, char *argv[])
 {
@@ -814,7 +752,6 @@ int main(int argc, char *argv[])
     SDL_Color dark_blue = {10, 10, 150, 255};
 
     Explosion *listExplosions = NULL;
-
 
     srand(time(NULL));   // Initialization, should only be called once.
 
@@ -885,6 +822,12 @@ int main(int argc, char *argv[])
     // strcpy(myGame.highScores[1].name, "        ");
     // myGame.mode = HIGH_SCORES_MODE;
     // ProcessEvent = &HighScoresModeProcessEvent;
+
+
+    Saucer mySaucer;
+    mySaucer.x = 150.0;
+    mySaucer.y = 150.0;
+    mySaucer.v = (SDL_FPoint) {1.3, 0.0};
     
     SDL_bool fShipLost = SDL_FALSE;
     SDL_Event event;
@@ -1041,6 +984,9 @@ int main(int argc, char *argv[])
 
             }
 
+            //--
+            Saucer_UpdatePosition(&mySaucer);
+
         }
 
 
@@ -1050,38 +996,12 @@ int main(int argc, char *argv[])
 
         //
         if (myShip) Ship_Draw( myShip, renderer);
+        
+        Saucer_Draw(&mySaucer, renderer);
 
         DrawBullets( myGame.listBullets, renderer);
         DrawRocks(myGame.listRocks, renderer);
         DrawExplosions(listExplosions, renderer);
-
-
-        // Symbol_Draw(&charA,renderer, 50.0, 100.0);
-        // Symbol_Draw(&charB,renderer, 50.0+20.0, 100.0);
-        // Symbol_Draw(&charC,renderer, 50.0+2*20.0, 100.0);
-        // Symbol_Draw(&charD,renderer, 50.0+3*20.0, 100.0);
-        // Symbol_Draw(&charE,renderer, 50.0+4*20.0, 100.0);
-        // Symbol_Draw(&charF,renderer, 50.0+5*20.0, 100.0);
-        // Symbol_Draw(&charG,renderer, 50.0+6*20.0, 100.0);
-        // Symbol_Draw(&charH,renderer, 50.0+7*20.0, 100.0);
-        // Symbol_Draw(&charI,renderer, 50.0+8*20.0, 100.0);
-        // Symbol_Draw(&charJ,renderer, 50.0+9*20.0, 100.0);
-        // Symbol_Draw(&charK,renderer, 50.0+10*20.0, 100.0);
-        // Symbol_Draw(&charL,renderer, 50.0+11*20.0, 100.0);
-        // Symbol_Draw(&charM,renderer, 50.0+12*20.0, 100.0);
-        // Symbol_Draw(&charN,renderer, 50.0+13*20.0, 100.0);
-        // Symbol_Draw(&charO,renderer, 50.0+14*20.0, 100.0);
-        // Symbol_Draw(&charP,renderer, 50.0+15*20.0, 100.0);
-        // Symbol_Draw(&charQ,renderer, 50.0+16*20.0, 100.0);
-        // Symbol_Draw(&charR,renderer, 50.0+17*20.0, 100.0);
-        // Symbol_Draw(&charS,renderer, 50.0+18*20.0, 100.0);
-        // Symbol_Draw(&charT,renderer, 50.0+19*20.0, 100.0);
-        // Symbol_Draw(&charU,renderer, 50.0+20*20.0, 100.0);
-        // Symbol_Draw(&charV,renderer, 50.0+21*20.0, 100.0);
-        // Symbol_Draw(&charW,renderer, 50.0+22*20.0, 100.0);
-        // Symbol_Draw(&charX,renderer, 50.0+23*20.0, 100.0);
-        // Symbol_Draw(&charY,renderer, 50.0+24*20.0, 100.0);
-        // Symbol_Draw(&charZ,renderer, 50.0+25*20.0, 100.0);
 
         const char strStart[]="PRESS TRIGGER TO START";
         const char strGameOver[]="GAME OVER";

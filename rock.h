@@ -16,6 +16,7 @@ typedef struct Rock {
 
 
 void AddNewRock(Rock **listRocks);
+void DivideRocks(Rock **listRocks, Rock *explRock);
 void UpdateRockPositions(Rock *listRocks);
 void DrawRocks( Rock *listRocks, SDL_Renderer *renderer);
 void UpdateRocksList(Rock **listRocks);

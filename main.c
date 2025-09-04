@@ -126,7 +126,7 @@ int Char2IndexSymbol(char c)
     return -1;
 }
 
-void DisplayMessage(SDL_Renderer *renderer, float xt, float yt, char *msg)
+void DisplayMessage(SDL_Renderer *renderer, float xt, float yt, const char *msg)
 {
     int i,ic;
     float xc;
@@ -158,7 +158,7 @@ void DisplayScore(SDL_Renderer *renderer, float x, float y, int score)
 
 }
 
-float MessageWidth(char *msg)
+float MessageWidth(const char *msg)
 {
     //--------------------------------------------------------------
     return strlen(msg)*14.0;
@@ -253,12 +253,12 @@ void Draw_Score(SDL_Renderer *renderer,int score){
     }
 }
 
-void NewLevel( Rock **listRocks, Game *game)
+void NewLevel( Game *game)
 {
     int nbRocks = game->iLevel * 4 + 7;
     //-----------------------------------------------------
     for(int i = 0; i<nbRocks;++i){
-        AddNewRock(listRocks);
+        AddNewRock(&game->listRocks);
 
     }
     if (myShip){
@@ -276,6 +276,58 @@ int (*ProcessEvent) (SDL_Event event, SDL_Joystick *joystick, struct Game *game,
 int IdleModeProcessEvent(SDL_Event event, SDL_Joystick *joystick,Game *game,Ship *ship)
 {
     //-----------------------------------------------------
+    if (joystick){
+
+        if (event.type == SDL_JOYBUTTONDOWN){
+            printf("Joystick event button down %d\n",event.jbutton.button);
+            if (event.jbutton.button==5){
+                game->mode = PLAY_MODE;
+                ProcessEvent = &PlayModeProcessEvent;
+                if (myShip=(Ship *) calloc(1,sizeof(Ship))){
+                    myShip->iTrigger = 0;
+                    Ship_SetThrust(myShip, 0);
+                    Ship_SetRotate(myShip, 0);
+                    Ship_SetLocation(myShip, 320, 240);
+                    Ship_SetAngle( myShip, -90.0f);
+                }
+            }
+
+        }else if (event.type == SDL_JOYBUTTONUP){
+            printf("Joystick event button up %d\n",event.jbutton.button);
+
+        }else if (event.type == SDL_JOYHATMOTION){
+            printf("Joystick event hat \n");
+            if ( event.jhat.value & SDL_HAT_UP )
+            {
+                /* Do up stuff here */
+                printf("HAT UP\n");
+            }
+            if ( event.jhat.value & SDL_HAT_DOWN )
+            {
+                /* Do up stuff here */
+                printf("HAT DOWN\n");
+            }
+            if ( event.jhat.value & SDL_HAT_LEFT )
+            {
+                /* Do left stuff here */
+                printf("HAT LEFT\n");
+
+            }
+            if ( event.jhat.value & SDL_HAT_RIGHT )
+            {
+                /* Do left stuff here */
+                printf("HAT RIGHT\n");
+
+            }
+
+            if ( event.jhat.value & SDL_HAT_RIGHTDOWN )
+            {
+                /* Do right and down together stuff here */
+                printf("HAT RIGHTDOWN\n");
+            }
+        }
+    }
+
     if (event.type == SDL_QUIT){
         return SDL_TRUE;
 
@@ -425,6 +477,51 @@ int PlayModeProcessEvent(SDL_Event event, SDL_Joystick *joystick,Game *game,Ship
 int GameOverModeProcessEvent(SDL_Event event, SDL_Joystick *joystick,Game *game,Ship *ship)
 {
     //-----------------------------------------------------
+    if (joystick){
+
+        if (event.type == SDL_JOYBUTTONDOWN){
+            printf("Joystick event button down %d\n",event.jbutton.button);
+            if (event.jbutton.button==5){
+                game->mode = IDLE_MODE;
+                ProcessEvent = &IdleModeProcessEvent;
+            }
+
+        }else if (event.type == SDL_JOYBUTTONUP){
+            printf("Joystick event button up %d\n",event.jbutton.button);
+
+        }else if (event.type == SDL_JOYHATMOTION){
+            printf("Joystick event hat \n");
+            if ( event.jhat.value & SDL_HAT_UP )
+            {
+                /* Do up stuff here */
+                printf("HAT UP\n");
+            }
+            if ( event.jhat.value & SDL_HAT_DOWN )
+            {
+                /* Do up stuff here */
+                printf("HAT DOWN\n");
+            }
+            if ( event.jhat.value & SDL_HAT_LEFT )
+            {
+                /* Do left stuff here */
+                printf("HAT LEFT\n");
+
+            }
+            if ( event.jhat.value & SDL_HAT_RIGHT )
+            {
+                /* Do left stuff here */
+                printf("HAT RIGHT\n");
+
+            }
+
+            if ( event.jhat.value & SDL_HAT_RIGHTDOWN )
+            {
+                /* Do right and down together stuff here */
+                printf("HAT RIGHTDOWN\n");
+            }
+        }
+    }
+
     if (event.type == SDL_QUIT){
         return SDL_TRUE;
 
@@ -459,7 +556,7 @@ void DrawHighScores(SDL_Renderer *renderer, Game *myGame)
     //-----------------------------------------------------
 
     SDL_SetRenderDrawColor(renderer, light_grey.r, light_grey.g, light_grey.b, light_grey.a);
-    char strTitle[]="HIGH SCORES";
+    const char strTitle[]="HIGH SCORES";
     DisplayMessage(renderer, WIN_WIDTH/2-MessageWidth(strTitle)/2, WIN_HEIGHT/8.5, strTitle);
 
     int xName = WIN_WIDTH / 2 - 14.0*10.0;
@@ -480,15 +577,15 @@ void DrawHighScores(SDL_Renderer *renderer, Game *myGame)
 
     SDL_SetRenderDrawColor(renderer, light_grey.r, light_grey.g, light_grey.b, light_grey.a);
     yTop = WIN_HEIGHT-6.0*20.0;
-    char strFooter1[]="PRESS UP  DOWN TO SET CHARACTER";
+    const char strFooter1[]="PRESS UP  DOWN TO SET CHARACTER";
     DisplayMessage(renderer, WIN_WIDTH/2-MessageWidth(strFooter1)/2, yTop, strFooter1);
 
     yTop += 20.0;
-    char strFooter2[]="PRESS LEFT RIGHT TO MOVE CURSOR";
+    const char strFooter2[]="PRESS LEFT RIGHT TO MOVE CURSOR";
     DisplayMessage(renderer, WIN_WIDTH/2-MessageWidth(strFooter2)/2, yTop, strFooter2);
 
     yTop += 40.0;
-    char strFooter3[]="PRESS TRIGGER TO CONTINUE";
+    const char strFooter3[]="PRESS TRIGGER TO CONTINUE";
     DisplayMessage(renderer, WIN_WIDTH/2-MessageWidth(strFooter3)/2, yTop, strFooter3);
 
 }
@@ -497,6 +594,90 @@ void DrawHighScores(SDL_Renderer *renderer, Game *myGame)
 int HighScoresModeProcessEvent(SDL_Event event, SDL_Joystick *joystick,Game *game,Ship *ship)
 {
     //-----------------------------------------------------
+    if (joystick){
+
+        if (event.type == SDL_JOYBUTTONDOWN){
+            printf("Joystick event button down %d\n",event.jbutton.button);
+            if (event.jbutton.button==5){
+                game->mode = IDLE_MODE;
+                ProcessEvent = &IdleModeProcessEvent;
+                if (!strncmp(game->highScores[game->iHighScore].name,"        ",8)){
+                    strcpy(game->highScores[game->iHighScore].name,"________");
+                }
+            }
+            SaveHighScores(game);
+
+        }else if (event.type == SDL_JOYBUTTONUP){
+            printf("Joystick event button up %d\n",event.jbutton.button);
+
+        }else if (event.type == SDL_JOYHATMOTION){
+            printf("Joystick event hat \n");
+            if ( event.jhat.value & SDL_HAT_UP )
+            {
+                /* Do up stuff here */
+                printf("HAT UP\n");
+                char c = game->highScores[game->iHighScore].name[game->iCharHighScore];
+                int ic = Char2IndexSymbol(c);
+                if (ic==-1){
+                    c = 'A';
+                }else{
+                    if (ic>0){
+                        ic--;
+                        c = tabChars[ic]->c;
+                    }else{
+                        c = tabChars[27]->c;
+                    }
+                }
+                game->highScores[game->iHighScore].name[game->iCharHighScore] = c;
+
+
+            }
+            if ( event.jhat.value & SDL_HAT_DOWN )
+            {
+                /* Do up stuff here */
+                printf("HAT DOWN\n");
+                char c = game->highScores[game->iHighScore].name[game->iCharHighScore];
+                int ic = Char2IndexSymbol(c);
+                if (ic==-1){
+                    c = 'A';
+                }else{
+                    if (ic>=27){
+                        c = tabChars[0]->c;
+                    }else{
+                        ic++;
+                        c = tabChars[ic]->c;
+                    }
+                }
+                game->highScores[game->iHighScore].name[game->iCharHighScore] = c;
+
+            }
+            if ( event.jhat.value & SDL_HAT_LEFT )
+            {
+                /* Do left stuff here */
+                printf("HAT LEFT\n");
+                if (game->iCharHighScore>0){
+                    game->iCharHighScore--;
+                }
+
+            }
+            if ( event.jhat.value & SDL_HAT_RIGHT )
+            {
+                /* Do left stuff here */
+                printf("HAT RIGHT\n");
+                if (game->iCharHighScore<8){
+                    game->iCharHighScore++;
+                }
+
+            }
+
+            if ( event.jhat.value & SDL_HAT_RIGHTDOWN )
+            {
+                /* Do right and down together stuff here */
+                printf("HAT RIGHTDOWN\n");
+            }
+        }
+    }
+
     if (event.type == SDL_QUIT){
         return SDL_TRUE;
 
@@ -508,6 +689,10 @@ int HighScoresModeProcessEvent(SDL_Event event, SDL_Joystick *joystick,Game *gam
         }else if(event.key.keysym.sym == SDLK_SPACE){
             game->mode = IDLE_MODE;
             ProcessEvent = &IdleModeProcessEvent;
+            if (!strncmp(game->highScores[game->iHighScore].name,"        ",8)){
+                strcpy(game->highScores[game->iHighScore].name,"________");
+            }
+            SaveHighScores(game);
         }else if(event.key.keysym.sym == SDLK_LEFT){
             if (game->iCharHighScore>0){
                 game->iCharHighScore--;
@@ -544,21 +729,79 @@ int HighScoresModeProcessEvent(SDL_Event event, SDL_Joystick *joystick,Game *gam
                 }
             }
             game->highScores[game->iHighScore].name[game->iCharHighScore] = c;
-        }else if(event.key.keysym.sym == SDLK_p){
+        }else if(event.key. keysym.sym == SDLK_p){
             game->fPause ^= SDL_TRUE;
         }
     }else if ((event.type == SDL_KEYUP)){
-        //printf("KeyUp\n");
-        if(event.key.keysym.sym == SDLK_SPACE){
-            if (!strncmp(game->highScores[game->iHighScore].name,"        ",8)){
-                strcpy(game->highScores[game->iHighScore].name,"________");
-            }
-        }
+        printf("KeyUp\n");
     }
     return SDL_FALSE;
 
 }
 
+void DivideRocks(Explosion **listRocks, Rock *explRock)
+{
+    float   a,ra;
+    Rock    *ptrRock,*ptrCur;
+    //------------------------------------------------------
+    SDL_FPoint v = explRock->v;
+    float nv = sqrt(v.x*v.x+v.y*v.y);
+    SDL_FPoint u = {v.x/nv,v.y/nv};
+    SDL_FPoint n = {-u.y,u.x};
+    float r;
+
+    // Compute steering angle
+    if (fabs(n.x)<0.000001f){
+        ra = 90.0;
+    }else if (fabs(n.y)<0.000001f){
+        ra = 0.0f;
+    }else{
+        ra = atan2f(n.y, n.x);
+    }
+    int nbR = (rand()%2)?2:3;
+    for (int i=0;i<nbR;i++){
+        //--
+        if (ptrRock=(Rock *) calloc(1,sizeof(Rock))){
+            ptrRock->x = explRock->x;
+            ptrRock->y = explRock->y;
+            ptrRock->fDeleted = SDL_FALSE;
+
+            float da = ((float) (rand() % 15))*M_PI/180.0f;
+            if (rand()%2){
+                a = ra + da + i*120.0*M_PI/180.0f;
+            }else{
+                a = ra - da + i*120.0*M_PI/180.0f;
+            }
+            ptrRock->v.x = 1.3 * nv * cos(a) + v.x;
+            ptrRock->v.y = 1.3 * nv * sin(a) + v.y;
+
+            a = 0.0f;
+            ptrRock->nbVertices = 0;
+            ptrRock->rayMax = 0.0f;
+            ptrRock->rayMin = 1000.0;
+            for(int i=0;i<8;++i){
+                a += ((float) (rand() % 40 + 25))*M_PI/180.0f;
+                if (a>2*M_PI) break;
+                r = ((float) (rand() % 5)) +  explRock->rayMax/nbR;;
+                if (r < ptrRock->rayMin){
+                    ptrRock->rayMin = r;
+                }
+                if (r > ptrRock->rayMax){
+                    ptrRock->rayMax = r;
+                }
+                ptrRock->vertices[ptrRock->nbVertices].x = r * cos(a);
+                ptrRock->vertices[ptrRock->nbVertices].y = r * sin(a);
+                ptrRock->nbVertices++;
+            }
+
+            ptrRock->next = *listRocks;
+            *listRocks = ptrRock;
+        }
+
+    }
+
+
+}
 
 int main(int argc, char *argv[])
 {
@@ -570,7 +813,6 @@ int main(int argc, char *argv[])
     SDL_Color orange = {255, 127, 40, 255};
     SDL_Color dark_blue = {10, 10, 150, 255};
 
-    Rock    *listRocks = NULL;
     Explosion *listExplosions = NULL;
 
 
@@ -622,17 +864,19 @@ int main(int argc, char *argv[])
     }
 
 
-
     Uint32 curTicks = SDL_GetTicks();
     Uint32 lastBulletTicks = curTicks;
     Uint32 lastUpdateExplosionTicks = curTicks;
+    Uint32 timeoutShipLost;
+
+    myShip = NULL;
+    NewLevel(&myGame);
 
     myGame.mode = IDLE_MODE;
     ProcessEvent = &IdleModeProcessEvent;
     myGame.score = 0;
     myGame.nbLifes = 3;
     myGame.listBullets = NULL;
-    NewLevel( &listRocks, &myGame);
 
     LoadHighScores(&myGame);
 
@@ -641,7 +885,8 @@ int main(int argc, char *argv[])
     // strcpy(myGame.highScores[1].name, "        ");
     // myGame.mode = HIGH_SCORES_MODE;
     // ProcessEvent = &HighScoresModeProcessEvent;
-
+    
+    SDL_bool fShipLost = SDL_FALSE;
     SDL_Event event;
     while(!quit)
     {
@@ -677,7 +922,7 @@ int main(int argc, char *argv[])
                 Ship_UpdatePosition(myShip);
             }
 
-            UpdateRockPositions(listRocks);
+            UpdateRockPositions(myGame.listRocks);
             UpdateBulletPositions(myGame.listBullets);
 
             UpdateBulletsList(&myGame.listBullets);
@@ -694,28 +939,32 @@ int main(int argc, char *argv[])
                 Rock *ptrRock;
                 do{
                     //
-                    if (ptrRock=CheckBulletHitRocks(ptrBullet, listRocks)){
+                    if (ptrRock=CheckBulletHitRocks(ptrBullet, myGame.listRocks)){
                         AddNewExplosion(&listExplosions,ptrRock->x,ptrRock->y, ptrRock->v.x, ptrRock->v.y);
                         Mix_PlayChannel( -1, explosionSound, 0 );
-                        myGame.score += 30;
-                        
+                        if (ptrRock->rayMax>15.0){
+                            DivideRocks(&myGame.listRocks, ptrRock);
+                            myGame.score += 50;
+                        }else{
+                            myGame.score += 100;
+                        }                       
                     }
                     //
                     ptrBullet = ptrBullet->next;
                 }while(ptrBullet);
             }
 
-            UpdateRocksList(&listRocks);
-            if (listRocks==NULL){
+            UpdateRocksList(&myGame.listRocks);
+            if (myGame.listRocks==NULL){
                 myGame.iLevel++;
-                NewLevel(&listRocks, &myGame);
+                NewLevel(&myGame);
             }
 
             //-- Check Ship <-> Rock collision
             if (myShip){
-                SDL_bool fLost = SDL_FALSE;
+                
                 Rock *ptrRock;
-                if (ptrRock=listRocks){
+                if (ptrRock=myGame.listRocks){
                     float vx,vy,d;
                     do{
                         for (int i=0;i<3;++i){
@@ -723,80 +972,74 @@ int main(int argc, char *argv[])
                             vy = ptrRock->y - myShip->vertices[i].y;
                             d = sqrt(vx*vx+vy*vy);
                             if (d<ptrRock->rayMax){
-                                fLost = SDL_TRUE;
+                                fShipLost = SDL_TRUE;
                                 ptrRock->fDeleted = SDL_TRUE;
                                 AddNewExplosion(&listExplosions,ptrRock->x,ptrRock->y, ptrRock->v.x, ptrRock->v.y);
                                 AddNewExplosion(&listExplosions,myShip->x, myShip->y, myShip->v.x, myShip->v.y);
                                 Ship_SetLocation( myShip, WIN_WIDTH/2, WIN_HEIGHT/2);
                                 Ship_SetVelocity( myShip, 0.0, 0.0);
-                                Mix_PlayChannel( -1, explosionSound, 0 );                
-                                //fPause = SDL_TRUE;
+                                Mix_PlayChannel( -1, explosionSound, 0 );
                                 break;
                             }
                         }
 
-                    }while((fLost==SDL_FALSE) && (ptrRock=ptrRock->next));
+                    }while((fShipLost==SDL_FALSE) && (ptrRock=ptrRock->next));
                 }
 
-                if (fLost){
+                if (fShipLost){
                     
+                    free(myShip);
+                    myShip = NULL;
                     myGame.nbLifes--;
-                    if (myGame.nbLifes==0){
-                        
-                        //
-                        free(myShip);
-                        myShip = NULL;
+                    timeoutShipLost = SDL_GetTicks();
 
-                        int ih = IsHighScore(&myGame);
-                        if (ih>=0){
+                }
 
-                            myGame.mode = HIGH_SCORES_MODE;
-                            ProcessEvent = &HighScoresModeProcessEvent;
+            }else if (fShipLost){
+                Uint32 curTicks = SDL_GetTicks();
+                if ((curTicks-timeoutShipLost)>500){
+                    if ((myGame.listBullets==NULL)&&(listExplosions==NULL)){
+                        fShipLost = SDL_FALSE;
+                        if (myGame.nbLifes==0){
+                            
+                            int ih = IsHighScore(&myGame);
+                            if ((ih>=0) && (myGame.score)){
 
-                            myGame.iHighScore = ih;
-                            myGame.highScores[ih].score = myGame.score;
-                            strcpy(myGame.highScores[ih].name,"        ");
+                                myGame.mode = HIGH_SCORES_MODE;
+                                ProcessEvent = &HighScoresModeProcessEvent;
+
+                                myGame.iCharHighScore = 0;
+                                myGame.iHighScore = ih;
+                                myGame.highScores[ih].score = myGame.score;
+                                strcpy(myGame.highScores[ih].name,"        ");
+
+                            }else{
+                                myGame.mode = IDLE_MODE;
+                                ProcessEvent = &IdleModeProcessEvent;
+
+                            }
+
+                            FreeRocks(&myGame.listRocks);
+                            myGame.score = 0;
+                            myGame.nbLifes = 3;
+                            myGame.iLevel = 0;
 
                         }else{
-                            myGame.mode = IDLE_MODE;
-                            ProcessEvent = &IdleModeProcessEvent;
+
+                            if (myShip=(Ship *) calloc(1,sizeof(Ship))){
+                                myShip->iTrigger = 0;
+                                Ship_SetThrust(myShip, 0);
+                                Ship_SetRotate(myShip, 0);
+                                Ship_SetLocation(myShip, 320, 240);
+                                Ship_SetAngle( myShip, -90.0f);
+                            }
 
                         }
 
-                        myGame.score = 0;
-                        myGame.nbLifes = 3;
-                        FreeBullets(&myGame.listBullets);
-                        FreeRocks(&listRocks);
-                        FreeExplosions(&listExplosions);
-                        NewLevel( &listRocks, &myGame);
-
                     }
                 }
+
             }
-
-
-            //
-            // int nb = 0;
-            // Bullet *ptrBullet;
-            // if (ptrBullet=listBullets){
-
-            //     do{
-            //         nb++;
-            //         ptrBullet = ptrBullet->next;
-            //     }while(ptrBullet);
-            // }
-            // printf("nbre bullets = %d\n",nb);
-
-            // int nb = 0;
-            // Rock *ptrRock;
-            // if (ptrRock=listRocks){
-
-            //     do{
-            //         nb++;
-            //         ptrRock = ptrRock->next;
-            //     }while(ptrRock);
-            // }
-            // printf("nbre Rocks = %d\n",nb);
 
         }
 
@@ -809,7 +1052,7 @@ int main(int argc, char *argv[])
         if (myShip) Ship_Draw( myShip, renderer);
 
         DrawBullets( myGame.listBullets, renderer);
-        DrawRocks(listRocks, renderer);
+        DrawRocks(myGame.listRocks, renderer);
         DrawExplosions(listExplosions, renderer);
 
 
@@ -840,8 +1083,8 @@ int main(int argc, char *argv[])
         // Symbol_Draw(&charY,renderer, 50.0+24*20.0, 100.0);
         // Symbol_Draw(&charZ,renderer, 50.0+25*20.0, 100.0);
 
-        char strStart[]="PRESS TRIGGER TO START";
-        char strGameOver[]="GAME OVER";
+        const char strStart[]="PRESS TRIGGER TO START";
+        const char strGameOver[]="GAME OVER";
 
         switch (myGame.mode){
             case IDLE_MODE:
@@ -868,7 +1111,7 @@ int main(int argc, char *argv[])
 
     // Free Game Objects
     FreeBullets(&myGame.listBullets);
-    FreeRocks(&listRocks);
+    FreeRocks(&myGame.listRocks);
     FreeExplosions(&listExplosions);
     if (myShip){
         free(myShip);

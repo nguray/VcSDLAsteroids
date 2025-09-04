@@ -29,9 +29,9 @@ void AddNewRock(Rock **listRocks)
         ptrRock->rayMax = 0.0f;
         ptrRock->rayMin = 1000.0;
         for(int i=0;i<10;++i){
-            a += ((float) (rand() % 40 + 20))*M_PI/180.0f;
+            a += ((float) (rand() % 45 + 25))*M_PI/180.0f;
             if (a>2*M_PI) break;
-            r = ((float) (rand() % 5)) + 10.0;
+            r = ((float) (rand() % 5)) + 15.0;
             if (r < ptrRock->rayMin){
                 ptrRock->rayMin = r;
             }

@@ -2,6 +2,7 @@
 
 #include "ship.h"
 #include "bullet.h"
+#include "rock.h"
 
 #ifndef  M_PI
 #define  M_PI  3.1415926535897932384626433
@@ -28,8 +29,9 @@ typedef struct Game {
     int nbLifes;
     int score ;
     SDL_bool fPause;
-    Uint32 lastBulletTicks;
+    Uint32  lastBulletTicks;
     Bullet  *listBullets;
+    Rock    *listRocks;
     int       iCharHighScore;
     int       iHighScore;
     HighScore highScores[10];

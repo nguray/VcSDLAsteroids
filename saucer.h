@@ -12,5 +12,6 @@ typedef struct {
 
 } Saucer;
 
+Saucer *NewSaucer();
 void Saucer_Draw( Saucer *ptrSaucer, SDL_Renderer *renderer);
 void Saucer_UpdatePosition(Saucer *ptrSaucer);

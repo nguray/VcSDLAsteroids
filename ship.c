@@ -1,6 +1,7 @@
 
 #include "game.h"
 #include "ship.h"
+#include <time.h>
 
 const SDL_Point ShipShape[] = {{0,15},{10,-10},{-10,-10}};
 const SDL_Point miniShipShape[] = {{0,-10},{7,7},{-7,7}};

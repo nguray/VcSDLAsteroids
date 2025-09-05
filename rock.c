@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <time.h>
 #include "game.h"
 #include "rock.h"
 
@@ -93,10 +94,8 @@ void DivideRocks(Rock **listRocks, Rock *explRock)
             ptrRock->v.x = 1.4 * nv * cos(a) + v.x;
             ptrRock->v.y = 1.4 * nv * sin(a) + v.y;
 
-            for(int i=0;i<20;++i){
-                ptrRock->x += ptrRock->v.x;
-                ptrRock->y += ptrRock->v.y;
-            }
+            ptrRock->x += 20.0*ptrRock->v.x;
+            ptrRock->y += 20.0*ptrRock->v.y;
 
             a = 0.0f;
             ptrRock->nbVertices = 0;

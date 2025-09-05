@@ -3,6 +3,7 @@
 #include "ship.h"
 #include "bullet.h"
 #include "rock.h"
+#include "saucer.h"
 
 #ifndef  M_PI
 #define  M_PI  3.1415926535897932384626433
@@ -38,4 +39,5 @@ typedef struct Game {
 } Game;
 
 extern Game myGame;
-extern Ship *myShip;
+extern Ship   *myShip;
+extern Saucer *mySaucer;

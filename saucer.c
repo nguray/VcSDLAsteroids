@@ -1,15 +1,28 @@
 
 #include "game.h"
 #include "saucer.h"
+#include <time.h>
 
 
 const SDL_FPoint SaucerShape[] = { {-20,0},{-9,3},{-4,8},{4,8},{9,3},{20,0},
                                     {9,-3},{4,-8},{-4,-8},{-9,-3} };
 
+Saucer *NewSaucer()
+{
+    Saucer *ptrSaucer;
+    if (ptrSaucer=(Saucer *) calloc(1,sizeof(Saucer))){
+        ptrSaucer->x = 1.0;
+        ptrSaucer->y = WIN_HEIGHT/3 + rand() % (WIN_HEIGHT/2);
+        ptrSaucer->v = (SDL_FPoint) {1.3, 0.0};
+
+    }
+    return ptrSaucer;
+}
+
 void Saucer_Draw( Saucer *ptrSaucer, SDL_Renderer *renderer)
 {
     SDL_Point pts[16];
-    SDL_Color orange = {255, 127, 40, 255};
+    SDL_Color orange = {20, 200, 200, 255};
     //--------------------------------------------------------
     SDL_SetRenderDrawColor(renderer, orange.r, orange.g, orange.b, orange.a);
 
@@ -48,6 +61,7 @@ void Saucer_UpdatePosition(Saucer *ptrSaucer)
         x = WIN_WIDTH - vx;
     }else if (x>=WIN_WIDTH){
         x = vx;
+        y = WIN_HEIGHT/3 + rand() % (WIN_HEIGHT/2);
     }
 
     if (y<0.0f){

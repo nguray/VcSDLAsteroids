@@ -256,7 +256,7 @@ void Draw_Score(SDL_Renderer *renderer,int score){
 
 void NewLevel( Game *game)
 {
-    int nbRocks = game->iLevel * 4 + 7;
+    int nbRocks = game->iLevel * 3 + 6;
     //-----------------------------------------------------
     for(int i = 0; i<nbRocks;++i){
         AddNewRock(&game->listRocks);
@@ -824,11 +824,6 @@ int main(int argc, char *argv[])
     // ProcessEvent = &HighScoresModeProcessEvent;
 
 
-    Saucer mySaucer;
-    mySaucer.x = 150.0;
-    mySaucer.y = 150.0;
-    mySaucer.v = (SDL_FPoint) {1.3, 0.0};
-    
     SDL_bool fShipLost = SDL_FALSE;
     SDL_Event event;
     while(!quit)
@@ -890,7 +885,21 @@ int main(int argc, char *argv[])
                             myGame.score += 50;
                         }else{
                             myGame.score += 100;
-                        }                       
+                        }
+                        if ((mySaucer==NULL)&&((rand()%6)==0)) {
+                            mySaucer = NewSaucer();
+                        }
+                    }else if (mySaucer){
+                        float vx = ptrBullet->x - mySaucer->x;
+                        float vy = ptrBullet->y - mySaucer->y;
+                        float d = sqrt(vx*vx+vy*vy);
+                        if (d<24.0){
+                            AddNewExplosion(&listExplosions,mySaucer->x,mySaucer->y, mySaucer->v.x, mySaucer->v.y);
+                            Mix_PlayChannel( -1, explosionSound, 0 );
+                            free(mySaucer);
+                            mySaucer = NULL;
+                            myGame.score += 500;
+                        }
                     }
                     //
                     ptrBullet = ptrBullet->next;
@@ -923,6 +932,18 @@ int main(int argc, char *argv[])
                                 Ship_SetVelocity( myShip, 0.0, 0.0);
                                 Mix_PlayChannel( -1, explosionSound, 0 );
                                 break;
+                            }
+                        }
+                        if (mySaucer){
+                            float vx = mySaucer->x - myShip->x;
+                            float vy = mySaucer->y - myShip->y;
+                            float d = sqrt(vx*vx+vy*vy);
+                            if (d<22.0){
+                                fShipLost = SDL_TRUE;
+                                AddNewExplosion(&listExplosions,myShip->x,myShip->y, myShip->v.x, myShip->v.y);
+                                Mix_PlayChannel( -1, explosionSound, 0 );
+                                free(mySaucer);
+                                mySaucer = NULL;
                             }
                         }
 
@@ -985,7 +1006,7 @@ int main(int argc, char *argv[])
             }
 
             //--
-            Saucer_UpdatePosition(&mySaucer);
+           if (mySaucer) Saucer_UpdatePosition(mySaucer);
 
         }
 
@@ -997,7 +1018,7 @@ int main(int argc, char *argv[])
         //
         if (myShip) Ship_Draw( myShip, renderer);
         
-        Saucer_Draw(&mySaucer, renderer);
+        if (mySaucer) Saucer_Draw(mySaucer, renderer);
 
         DrawBullets( myGame.listBullets, renderer);
         DrawRocks(myGame.listRocks, renderer);
@@ -1035,7 +1056,10 @@ int main(int argc, char *argv[])
     FreeExplosions(&listExplosions);
     if (myShip){
         free(myShip);
-    }   
+    }
+    if (mySaucer){
+        free(mySaucer);
+    }
 
     //SDL_Delay(3000);
 

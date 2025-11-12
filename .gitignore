@@ -56,3 +56,8 @@ dkms.conf
 debug
 release
 obj
+build/
+build/.ninja*
+
+
+

@@ -1046,7 +1046,7 @@ int main(int argc, char *argv[])
         SDL_RenderPresent(renderer);
 
         //
-        SDL_Delay(10);
+        SDL_Delay(5);
 
     }
 

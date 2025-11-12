@@ -1,0 +1,9 @@
+# ninja log v7
+3	1058	7846685144680384	CMakeFiles/SDLAsteroids.dir/bullet.c.obj	6bbb6ae160b2e083
+7	1074	7846685144732421	CMakeFiles/SDLAsteroids.dir/explosion.c.obj	477a3c3d39ec009e
+12	1075	7846685144782594	CMakeFiles/SDLAsteroids.dir/game.c.obj	73af8d9fb1e814c1
+17	1107	7846685144828842	CMakeFiles/SDLAsteroids.dir/rock.c.obj	e15fdeb8d9995b1e
+22	1130	7846685144874297	CMakeFiles/SDLAsteroids.dir/ship.c.obj	74c17344223c1e12
+28	1169	7846685144931345	CMakeFiles/SDLAsteroids.dir/main.c.obj	37e81202c3e20ba1
+18	664	7846687398576734	CMakeFiles/SDLAsteroids.dir/saucer.c.obj	b3366dae806231f0
+23	214	7846687727800221	SDLAsteroids.exe	9ac70a17258b7391

@@ -1,0 +1,3 @@
+D:/Cpp/VcSDLAsteroids/build/CMakeFiles/SDLAsteroids.dir
+D:/Cpp/VcSDLAsteroids/build/CMakeFiles/edit_cache.dir
+D:/Cpp/VcSDLAsteroids/build/CMakeFiles/rebuild_cache.dir
